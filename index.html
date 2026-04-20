@@ -4,11 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>卫黎 3D 内容平台</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.loli.net/css2?family=Orbitron:wght@700;900&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
   <script src="https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: #020408; color: #e2e8f0; font-family: 'Inter', sans-serif; min-height: 100vh; }
@@ -48,7 +47,7 @@
 <div id="root"></div>
 <script>
 const e = React.createElement;
-const { useState, useEffect, useRef, useMemo, useCallback } = React;
+const { useState, useEffect, useRef, useMemo } = React;
 
 // ─── Data ──────────────────────────────────────────────────────────────────
 const ASSETS_BASE = [
@@ -142,12 +141,17 @@ function PaidModal({ item, onClose }) {
 // ─── Tab1: 素材库 ──────────────────────────────────────────────────────────
 function MaterialLibrary() {
   const [category, setCategory] = useState('全部');
+  const [search, setSearch]     = useState('');
   const [paidModal, setPaidModal] = useState(null);
 
   const filtered = useMemo(() => {
-    if (category === '全部') return ALL_CARDS;
-    return ALL_CARDS.filter(c => c.c === category || c.c === '__placeholder__');
-  }, [category]);
+    let cards = category === '全部' ? ALL_CARDS : ALL_CARDS.filter(c => c.c === category);
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      cards = cards.filter(c => c.c !== '__placeholder__' && c.t.toLowerCase().includes(q));
+    }
+    return cards;
+  }, [category, search]);
 
   const handleCardClick = (card) => {
     if (card.c === '__placeholder__') return;
@@ -163,7 +167,7 @@ function MaterialLibrary() {
     // Search + filters row
     e('div', { style: { display: 'flex', gap: 12, alignItems: 'center', marginBottom: 20, flexWrap: 'wrap' } },
       e('div', { style: { flex: 1, minWidth: 200, position: 'relative' } },
-        e('input', { type: 'text', placeholder: '🔍  搜索素材名称…', style: { paddingLeft: 16 } })
+        e('input', { type: 'text', placeholder: '🔍  搜索素材名称…', value: search, onChange: ev => setSearch(ev.target.value), style: { paddingLeft: 16 } })
       )
     ),
     // Category pills
@@ -265,12 +269,16 @@ function AIGenerate() {
   const handleFileChange = (ev) => {
     const file = ev.target.files[0];
     if (!file) return;
+    if (!file.type.startsWith('image/')) { setGenError('请上传图片文件（PNG/JPG/WEBP）'); return; }
+    if (file.size > 5 * 1024 * 1024) { setGenError('图片大小不能超过 5MB'); return; }
+    setGenError('');
     const reader = new FileReader();
-    reader.onload = (e) => setUploadedImg({ dataUrl: e.target.result, name: file.name });
+    reader.onload = (ev2) => setUploadedImg({ dataUrl: ev2.target.result, name: file.name });
     reader.readAsDataURL(file);
   };
 
   const startPolling = (id) => {
+    if (pollRef.current) clearInterval(pollRef.current);
     setGenStep('polling');
     pollRef.current = setInterval(async () => {
       try {
@@ -295,6 +303,10 @@ function AIGenerate() {
 
   const handleGenerate = async () => {
     if (isGenerating) return;
+    if (!rotation) { setGenError('请选择旋转方式'); return; }
+    if (!background) { setGenError('请选择背景效果'); return; }
+    if (aiMode === 'upload' && !uploadedImg) { setGenError('请先上传产品图片'); return; }
+    if (aiMode === 'keyword' && !keyword.trim()) { setGenError('请输入产品关键词'); return; }
     setGenError('');
     setVideoUrl(null);
     setT2iPreview(null);
@@ -304,19 +316,25 @@ function AIGenerate() {
       let imageUrl = null;
       if (aiMode === 'keyword') {
         setGenStep('t2i');
-        const r1   = await fetch('/api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: keyword, size: '1:1' }) });
-        const d1   = await r1.json();
-        imageUrl   = d1.url;
+        const r1 = await fetch('/api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: keyword, size: '1:1' }) });
+        if (!r1.ok) { const e1 = await r1.json(); throw new Error(e1.error || `图像生成失败 (${r1.status})`); }
+        const d1 = await r1.json();
+        imageUrl = d1.url;
+        if (!imageUrl) throw new Error('图像接口未返回图片，请稍后重试');
         setT2iPreview(imageUrl);
         setGenStep('i2v');
-        const r2   = await fetch('/api/generate-video', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ imageUrl, rotation, background }) });
-        const d2   = await r2.json();
+        const r2 = await fetch('/api/generate-video', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ imageUrl, rotation, background }) });
+        if (!r2.ok) { const e2 = await r2.json(); throw new Error(e2.error || `视频任务提交失败 (${r2.status})`); }
+        const d2 = await r2.json();
+        if (!d2.taskId) throw new Error('视频接口未返回任务ID，请稍后重试');
         setTaskId(d2.taskId);
         startPolling(d2.taskId);
       } else {
         setGenStep('i2v');
-        const r2   = await fetch('/api/generate-video', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ imageBase64: uploadedImg.dataUrl, rotation, background }) });
-        const d2   = await r2.json();
+        const r2 = await fetch('/api/generate-video', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ imageBase64: uploadedImg.dataUrl, rotation, background }) });
+        if (!r2.ok) { const e2 = await r2.json(); throw new Error(e2.error || `视频任务提交失败 (${r2.status})`); }
+        const d2 = await r2.json();
+        if (!d2.taskId) throw new Error('视频接口未返回任务ID，请稍后重试');
         setTaskId(d2.taskId);
         startPolling(d2.taskId);
       }
@@ -376,8 +394,8 @@ function AIGenerate() {
               value: keyword,
               onChange: ev => setKeyword(ev.target.value)
             }),
-            t2iPreview && e('div', { style: { display: 'flex', alignItems: 'center', gap: 12, marginTop: 12, padding: '10px 14px', background: 'rgba(56,189,248,0.06)', borderRadius: '0.75rem', border: '1px solid rgba(56,189,248,0.2)' } },
-              e('img', { src: t2iPreview, alt: '参考图', style: { width: 48, height: 48, objectFit: 'cover', borderRadius: '0.5rem' } }),
+            t2iPreview && ['i2v', 'polling'].includes(genStep) && e('div', { style: { display: 'flex', alignItems: 'center', gap: 12, marginTop: 12, padding: '10px 14px', background: 'rgba(56,189,248,0.06)', borderRadius: '0.75rem', border: '1px solid rgba(56,189,248,0.2)' } },
+              e('img', { src: t2iPreview, alt: '参考图', style: { width: 48, height: 48, objectFit: 'cover', borderRadius: '0.5rem' }, onError: ev => { ev.target.style.display = 'none'; } }),
               e('span', { style: { color: '#38bdf8', fontSize: 13 } }, '参考图已生成…')
             )
           ),
@@ -425,7 +443,7 @@ function AIGenerate() {
     // Result section
     genStep === 'done' && videoUrl && e('div', { className: 'glass', style: { borderRadius: '2rem', padding: '24px', textAlign: 'center' } },
       e('div', { style: { fontSize: 13, fontWeight: 700, color: '#22c55e', marginBottom: 16 } }, '✅ 视频生成完成！'),
-      e('video', { src: videoUrl, autoPlay: true, loop: true, muted: true, controls: true, style: { width: '100%', borderRadius: '1rem', maxHeight: 400 } }),
+      e('video', { src: videoUrl, autoPlay: true, loop: true, muted: true, controls: true, playsInline: true, style: { width: '100%', borderRadius: '1rem', maxHeight: 400 } }),
       e('div', { style: { display: 'flex', gap: 12, marginTop: 16, justifyContent: 'center' } },
         e('a', { href: videoUrl, download: 'hologram.mp4', className: 'btn-blue', style: { padding: '10px 24px', borderRadius: '0.75rem', fontWeight: 700, textDecoration: 'none', fontSize: 14 } }, '⬇ 下载视频'),
         e('button', {
@@ -633,10 +651,11 @@ function CustomOrder() {
 }
 
 // ─── App Shell ─────────────────────────────────────────────────────────────
+const TABS = ['素材库', 'AI生成', '卖家入驻', '定制委托'];
+const CONTENT = [MaterialLibrary, AIGenerate, SellerApply, CustomOrder];
+
 function App() {
   const [tab, setTab] = useState(0);
-  const TABS = ['素材库', 'AI生成', '卖家入驻', '定制委托'];
-  const CONTENT = [MaterialLibrary, AIGenerate, SellerApply, CustomOrder];
   const CurrentTab = CONTENT[tab];
 
   return e('div', { style: { minHeight: '100vh', background: '#020408' } },
