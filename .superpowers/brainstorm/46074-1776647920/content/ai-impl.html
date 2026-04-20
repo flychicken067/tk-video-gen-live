@@ -1,0 +1,40 @@
+<h2>AI 生成模块 — 实现方式</h2>
+<p class="subtitle">用户选旋转方式 + 背景效果 + 关键词 → 生成全息素材</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>真实 AI 接口（推荐）</h3>
+      <p>对接即梦/ComfyUI/Replicate 等 API，用户填参数后真实生成图像。需要 API Key 和生成费用（约 ¥0.5-2/张）。</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>优点</h4><ul><li>客户体验真实，付费意愿高</li><li>核心差异化能被感受到</li></ul></div>
+        <div class="cons"><h4>缺点</h4><ul><li>需要接入成本</li><li>生成时间 10-30 秒</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>参数选择 → 预置素材匹配</h3>
+      <p>用户选择旋转方式 + 背景效果，系统根据参数组合展示已有素材库中的匹配结果，不调用 AI 接口。</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>优点</h4><ul><li>零接入成本，速度极快</li><li>可控体验</li></ul></div>
+        <div class="cons"><h4>缺点</h4><ul><li>"AI"感偏弱</li><li>素材有限，重复率高</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>提交需求 → 人工交付</h3>
+      <p>用户选参数后生成"定制订单"，由设计师或杨磊团队手动生成后上传回复。48小时内交付。</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>优点</h4><ul><li>零技术成本启动</li><li>质量最可控</li></ul></div>
+        <div class="cons"><h4>缺点</h4><ul><li>无即时感，体验弱</li><li>难以规模化</li></ul></div>
+      </div>
+    </div>
+  </div>
+</div>

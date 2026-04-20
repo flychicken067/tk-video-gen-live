@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HoloMax Pro | AI-Native Holographic Platform</title>
+    <!-- Stable UMD Links (Standard JS, No Babel Needed) -->
+    <script src="https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-black: #020408; --accent-blue: #38bdf8; }
+        body { background-color: var(--bg-black); color: #f1f5f9; font-family: 'Inter', sans-serif; margin: 0; padding: 0; overflow-x: hidden; }
+        .orbitron { font-family: 'Orbitron', sans-serif; }
+        .glass { background: rgba(255,255,255,0.02); backdrop-filter: blur(28px); border: 1px solid rgba(255,255,255,0.06); }
+        .btn-blue { background: #2563eb; color: white; border: 1px solid #3b82f6; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
+        .btn-blue:hover { background: #3b82f6; box-shadow: 0 0 30px rgba(59, 130, 246, 0.5); transform: translateY(-1px); }
+        #page-loading { position: fixed; inset: 0; z-index: 9999; background: #020408; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s; }
+        .spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.05); border-top-color: #38bdf8; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loaded #page-loading { opacity: 0; visibility: hidden; }
+        .studio-stage { background: radial-gradient(circle at 50% 50%, #111827 0%, #020408 100%); min-height: 80vh; display: flex; align-items: center; justify-content: center; border-radius: 3rem; border: 1px solid rgba(255,255,255,0.03); position: relative; }
+        .hologram-asset { animation: float-h 6s ease-in-out infinite; }
+        @keyframes float-h { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+        .category-pill { border-radius: 9999px; transition: all 0.3s; white-space: nowrap; }
+        .pill-active { background: white; color: black; box-shadow: 0 10px 20px rgba(255,255,255,0.2); }
+    </style>
+</head>
+<body>
+    <div id="page-loading"><div class="spinner"></div><p class="orbitron text-[10px] mt-6 tracking-[0.6em] text-slate-500 uppercase font-bold">Initializing HoloMax Pro...</p></div>
+    <div id="root"></div>
+
+    <script>
+        const e = React.createElement;
+        const { useState, useEffect, useMemo } = React;
+
+        function Icon({ name, className = "w-5 h-5" }) {
+            useEffect(() => { if(window.lucide) window.lucide.createIcons(); }, [name]);
+            return e('i', { 'data-lucide': name, className });
+        }
+
+        function Nav({ activeTab, setActiveTab }) {
+            return e('nav', { className: "fixed top-0 left-0 w-full z-50 glass border-b border-white/5 px-6 lg:px-10 py-6 flex justify-between items-center shadow-2xl" },
+                e('div', { className: "flex items-center gap-4 group cursor-pointer" },
+                    e('div', { className: "w-11 h-11 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg transform group-hover:rotate-6 transition-all duration-300" }, e(Icon, { name: "atom", className: "text-white w-6 h-6" })),
+                    e('span', { className: "orbitron text-2xl font-black text-white tracking-tighter" }, "HOLOMAX ", e('span', { className: "text-blue-500" }, "PRO"))
+                ),
+                e('div', { className: "hidden lg:flex gap-12 bg-white/5 px-10 py-3 rounded-full border border-white/5" },
+                    ['素材库', 'AI实验室', '提现中心'].map(tab => e('button', {
+                        key: tab,
+                        onClick: () => setActiveTab(tab),
+                        className: `text-[10px] tracking-[0.3em] font-black uppercase transition-all ${activeTab===tab?'text-blue-400':'text-slate-500 hover:text-slate-300'}`
+                    }, tab))
+                ),
+                e('div', { className: "flex items-center gap-3 glass px-4 py-2 rounded-full border border-white/10" },
+                    e('div', { className: "w-7 h-7 rounded-full bg-slate-800 border border-white/10 overflow-hidden" }, e('img', { src: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&q=80", className: "object-cover w-full h-full" })),
+                    e('span', { className: "text-[10px] font-black orbitron uppercase tracking-[0.1em] text-slate-400" }, "Partner_821")
+                )
+            );
+        }
+
+        function MaterialCard({ m, onAction }) {
+            if(m.isPlaceholder) return e('div', { className: "mb-8 glass rounded-[2.5rem] p-10 flex flex-col items-center justify-center gap-5 group cursor-pointer border-dashed border-white/10 opacity-60 hover:opacity-100 transition-all min-h-[360px]", onClick: () => onAction('join') },
+                e('div', { className: "w-14 h-14 rounded-full border-2 border-white/5 flex items-center justify-center text-slate-700 group-hover:text-blue-500 transition-all" }, e(Icon, { name: "plus", className: "w-7 h-7" })),
+                e('div', { className: "text-center space-y-2" }, e('h3', { className: "text-xs orbitron font-black uppercase tracking-[0.3em] text-slate-600 italic" }, "Seat Reserved"), e('p', { className: "text-[10px] text-slate-800 uppercase font-black" }, "等待席位入驻"))
+            );
+            return e('div', { className: "mb-8 glass rounded-[2.5rem] p-4 hover:border-blue-500/40 transition-all duration-700 cursor-pointer group shadow-2xl", onClick: () => onAction('detail') },
+                e('div', { className: `relative overflow-hidden rounded-[2rem] bg-black ${m.h}` },
+                    e('img', { 
+                        src: m.img, 
+                        onError: (e) => { e.target.src = `https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=800&q=80&text=${m.title}`; },
+                        className: "w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-[2000ms]" 
+                    }),
+                    e('div', { className: "absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-90" }),
+                    e('div', { className: "absolute top-5 left-5" }, e('span', { className: "px-4 py-2 bg-black/40 glass border-white/10 rounded-full text-[10px] orbitron font-black text-blue-400 uppercase tracking-widest" }, m.type)),
+                    e('div', { className: "absolute bottom-6 left-8 right-8 flex justify-between items-end" },
+                        e('div', { className: "space-y-1" }, e('h3', { className: "text-lg font-bold text-white uppercase tracking-tight group-hover:text-blue-400 transition-colors" }, m.title), e('p', { className: "text-[9px] opacity-40 orbitron font-bold tracking-widest" }, `ID: ${m.id}`)),
+                        e('div', { className: "w-8 h-8 glass rounded-full flex items-center justify-center text-blue-400 opacity-0 group-hover:opacity-100 transition-all" }, e(Icon, { name: "arrow-up-right", className: "w-4 h-4" }))
+                    )
+                ),
+                e('div', { className: "px-6 py-5 flex justify-between items-center" }, 
+                    e('span', { className: "text-[11px] orbitron font-black text-slate-500 tracking-widest uppercase" }, `${m.downloads} Nodes`),
+                    e('span', { className: "orbitron font-black text-white text-lg" }, `¥${m.price}`)
+                )
+            );
+        }
+
+        function App() {
+            const [activeTab, setActiveTab] = useState('素材库');
+            const [modal, setModal] = useState(false);
+            const [selectedCat, setSelectedCat] = useState('全部');
+            const [genState, setGenState] = useState('idle'); // idle | generating | done | error
+            const [promptText, setPromptText] = useState('');
+            const [generatedUrl, setGeneratedUrl] = useState('');
+            const [genError, setGenError] = useState('');
+
+            async function handleGenerate() {
+                if (!promptText.trim() || genState === 'generating') return;
+                setGenState('generating');
+                setGenError('');
+                try {
+                    const res = await fetch('/api/generate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ prompt: promptText, size: '1:1' }),
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || '生成失败');
+                    setGeneratedUrl(data.url);
+                    setGenState('done');
+                } catch (err) {
+                    setGenError(err.message);
+                    setGenState('error');
+                }
+            }
+
+            useEffect(() => { setTimeout(() => document.body.classList.add('loaded'), 500); }, []);
+
+            const materials = useMemo(() => {
+                const assets = [
+                    { t: "金鳞神龙", c: "动物", i: "assets/dragon.png", h: "aspect-[14/21]", d: "58.2K", p: "59.0" },
+                    { t: "皇家钻表", c: "奢品", i: "assets/watch.png", h: "aspect-[14/15]", d: "21.5K", p: "35.0" },
+                    { t: "金鳞猛虎", c: "动物", i: "assets/tiger.png", h: "aspect-[14/19]", d: "12.4K", p: "19.9" },
+                    { t: "极光运动鞋", c: "潮配", i: "assets/sneaker.png", h: "aspect-[14/14]", d: "34.1K", p: "免费" }
+                ];
+                let list = [];
+                for(let i=1; i<=36; i++) {
+                    const b = assets[i % assets.length];
+                    list.push({ id: `HMX_${i}`, title: `${b.t} v${i}`, type: b.c, img: b.i, h: b.h, downloads: (Math.random()*50).toFixed(1)+'K', price: (Math.random()*100).toFixed(1) });
+                }
+                list.push({ id: 'P1', isPlaceholder: true }, { id: 'P2', isPlaceholder: true });
+                return list;
+            }, []);
+
+            const filtered = selectedCat === '全部' ? materials : materials.filter(m => m.isPlaceholder || m.type === selectedCat);
+
+            return e('div', { className: "min-h-screen bg-[#020408]" },
+                e(Nav, { activeTab, setActiveTab }),
+                e('div', { className: `transition-all duration-700 ${activeTab === 'AI实验室' ? 'pt-24 px-10' : 'pt-44 px-6 lg:px-24 mx-auto pb-48 max-w-[1920px]'}` },
+                    activeTab !== 'AI实验室' && e('header', { className: "flex flex-col lg:flex-row justify-between items-start gap-12 mb-24" },
+                        e('div', { className: "lg:w-3/5 space-y-8" },
+                            e('div', { className: "inline-flex items-center gap-4 px-5 py-2 glass rounded-full" },
+                                e('div', { className: "w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" }),
+                                e('span', { className: "text-[10px] orbitron font-black text-blue-400 tracking-[0.4em] uppercase" }, "HoloMax Pro Ready")
+                            ),
+                            e('h1', { className: "text-7xl lg:text-9xl font-black tracking-tighter leading-none text-white italic" }, activeTab === '素材库' ? '流量分红池' : '收益看板')
+                        ),
+                        e('div', { className: "lg:pt-32 flex gap-4" },
+                            e('button', { className: "btn-blue px-12 py-5 rounded-[2rem] text-[11px] orbitron font-black tracking-[0.3em] uppercase", onClick: () => setModal(true) }, "立即入驻"),
+                            e('button', { className: "glass px-12 py-5 rounded-[2rem] text-[11px] orbitron font-black tracking-[0.3em] uppercase text-slate-500 hover:text-white", onClick: () => setModal(true) }, "赚钱攻略")
+                        )
+                    ),
+                    activeTab === '素材库' && e('div', { className: "space-y-16" },
+                        e('div', { className: "flex flex-col lg:flex-row gap-8 items-center justify-between glass p-2 rounded-full px-10 border-white/5" },
+                            e('div', { className: "w-full lg:w-1/3 relative" },
+                                e(Icon, { name: "search", className: "absolute left-6 top-1/2 -translate-y-1/2 text-slate-700 w-4 h-4" }),
+                                e('input', { type: "text", placeholder: "搜索 3D 猛兽 / 奢品 / 艺术家...", className: "w-full bg-transparent border-none py-6 px-12 text-sm focus:outline-none text-slate-200 placeholder-slate-800" })
+                            ),
+                            e('div', { className: "flex gap-3 overflow-x-auto py-3 no-scrollbar" },
+                                ['全部','动物','奢品','潮配','抽象','商务'].map(c => e('button', {
+                                    key: c,
+                                    onClick: () => setSelectedCat(c),
+                                    className: `category-pill px-10 py-3.5 text-[11px] orbitron font-black uppercase tracking-[0.2em] border border-white/5 ${selectedCat===c?'pill-active bg-white text-black':'glass text-slate-500 hover:text-white'}`
+                                }, c))
+                            )
+                        ),
+                        e('div', { className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10" },
+                            filtered.map(m => e(MaterialCard, { key: m.id, m, onAction: () => setModal(true) }))
+                        )
+                    ),
+                    activeTab === 'AI实验室' && e('div', { className: "studio-stage" },
+                        genState === 'done' && generatedUrl
+                            ? e('img', { src: generatedUrl, className: "w-full max-w-xl h-auto hologram-asset drop-shadow-[0_0_80px_rgba(56,189,248,0.2)] rounded-[3rem]" })
+                        : genState === 'generating'
+                            ? e('div', { className: "flex flex-col items-center gap-6" },
+                                e('div', { className: "w-16 h-16 border-4 border-blue-500/10 border-t-blue-500 rounded-full animate-spin" }),
+                                e('p', { className: "text-[10px] orbitron text-blue-400 tracking-[0.4em] animate-pulse" }, "GENERATING...")
+                              )
+                        : genState === 'error'
+                            ? e('div', { className: "flex flex-col items-center gap-4 px-12 text-center" },
+                                e(Icon, { name: "alert-circle", className: "w-12 h-12 text-red-400 opacity-60" }),
+                                e('p', { className: "text-sm text-red-400 max-w-sm" }, genError)
+                              )
+                        : e('div', { className: "flex flex-col items-center gap-4 opacity-10" },
+                            e(Icon, { name: "aperture", className: "w-40 h-40" }),
+                            e('p', { className: "text-xs orbitron tracking-[0.4em] text-slate-500" }, "AWAITING PROMPT")
+                          ),
+                        e('div', { className: "fixed bottom-12 left-1/2 -translate-x-1/2 w-[90%] max-w-3xl glass rounded-[3rem] p-4 flex items-center gap-6 bg-[#0a0c10]/80 shadow-2xl ring-1 ring-white/10 backdrop-blur-3xl" },
+                            e('button', {
+                                className: "w-16 h-16 glass rounded-[2.2rem] flex items-center justify-center text-slate-500 hover:text-white transition-all",
+                                onClick: () => { setGenState('idle'); setGeneratedUrl(''); setPromptText(''); setGenError(''); }
+                            }, e(Icon, { name: "refresh-ccw", className: "w-5 h-5" })),
+                            e('input', {
+                                value: promptText,
+                                placeholder: "输入中文描述，一句话生成全息素材...",
+                                className: "flex-1 bg-transparent border-none outline-none text-base text-white px-2 placeholder-slate-700",
+                                onChange: (evt) => setPromptText(evt.target.value),
+                                onKeyDown: (evt) => evt.key === 'Enter' && handleGenerate()
+                            }),
+                            e('button', {
+                                onClick: handleGenerate,
+                                disabled: genState === 'generating' || !promptText.trim(),
+                                className: "btn-blue px-10 h-16 rounded-[2.2rem] text-xs orbitron font-black tracking-[0.3em] uppercase disabled:opacity-40 disabled:cursor-not-allowed"
+                            }, genState === 'generating' ? '...' : "GENERATE")
+                        )
+                    ),
+                    activeTab === '提现中心' && e('div', { className: "py-60 text-center opacity-10 space-y-6" },
+                        e(Icon, { name: "activity", className: "w-24 h-24 mx-auto" }),
+                        e('p', { className: "orbitron text-xl font-black uppercase tracking-[1em]" }, "Ledger Syncing...")
+                    )
+                ),
+                modal && e('div', { className: "fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/95 backdrop-blur-3xl" },
+                    e('div', { className: "glass rounded-[4rem] w-full max-w-xl p-16 text-center relative" },
+                        e('button', { onClick: () => setModal(false), className: "absolute top-10 right-10 text-slate-500 hover:text-white" }, e(Icon, { name: "x", className: "w-6 h-6" })),
+                        e('div', { className: "w-32 h-32 mx-auto mb-10 p-6 bg-white rounded-[2.5rem] flex items-center justify-center shadow-2xl" },
+                            e('img', { src: "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://wj.qq.com/s2/12345/join", className: "w-full h-full" })
+                        ),
+                        e('h3', { className: "text-3xl font-black orbitron uppercase tracking-[0.3em] text-white mb-6" }, "Scan to Partner"),
+                        e('p', { className: "text-slate-500 text-lg font-light mb-12" }, "请使用微信扫码，填写《合伙人入驻问卷》\n我们的分红手册将即时发送。"),
+                        e('div', { className: "p-5 bg-white/[0.03] rounded-3xl text-[10px] orbitron font-black text-slate-700 flex justify-between uppercase" }, e('span', null, "STATUS: READY"), e('span', null, "ENCRYPTED"))
+                    )
+                )
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(e(App));
+    </script>
+</body>
+</html>

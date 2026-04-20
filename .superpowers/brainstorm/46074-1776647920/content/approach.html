@@ -1,0 +1,59 @@
+<h2>MVP 实现方案 — 3 个路线</h2>
+<p class="subtitle">你已有 API Key + 现成的高保真 UI，选最合适的推进节奏</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>🚀 原地增强 + 部署（推荐，2–3 天）</h3>
+      <p>在现有 <code>mvp_hi_fi.html + server.js</code> 基础上直接增强，部署到腾讯云 HK。</p>
+      <p><strong>要加的东西：</strong></p>
+      <ul style="margin:8px 0 8px 16px; line-height:1.8">
+        <li>AI 生成加入「旋转方式」「背景效果」必选参数</li>
+        <li>卖家入驻表单（填信息 → server 收到 → 微信/邮件通知你）</li>
+        <li>付费素材点击后弹出「联系微信」（不做真实支付）</li>
+        <li>部署脚本 + 香港服务器配置</li>
+      </ul>
+      <div class="pros-cons">
+        <div class="pros"><h4>优点</h4><ul><li>2-3 天可访问</li><li>现有 UI 100% 保留</li><li>零框架迁移成本</li></ul></div>
+        <div class="cons"><h4>缺点</h4><ul><li>单文件架构，后续扩展稍麻烦</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>⚡ 原地增强 + 加简单数据库（5–7 天）</h3>
+      <p>同上，但 server.js 接入 SQLite，支持真实卖家上传素材文件并保存记录。</p>
+      <p><strong>额外加的：</strong></p>
+      <ul style="margin:8px 0 8px 16px; line-height:1.8">
+        <li>SQLite 数据库（素材表 + 卖家申请表）</li>
+        <li>卖家上传素材文件接口（/api/upload）</li>
+        <li>简单管理后台（你自己审核素材）</li>
+        <li>素材库从数据库动态加载（不再是写死的）</li>
+      </ul>
+      <div class="pros-cons">
+        <div class="pros"><h4>优点</h4><ul><li>卖家入驻真实可用</li><li>素材可动态增减</li></ul></div>
+        <div class="cons"><h4>缺点</h4><ul><li>多 4-5 天开发</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>🏗️ Next.js 完整重写（10–14 天）</h3>
+      <p>迁移到 Next.js 14 + PostgreSQL，生产级架构，微信登录 + 支付 + 全功能后台。</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>优点</h4><ul><li>架构干净，长期可维护</li><li>支持微信登录/支付</li></ul></div>
+        <div class="cons"><h4>缺点</h4><ul><li>2 周才能让客户看到</li><li>ICP 经营许可证（付费功能需要）</li></ul></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:24px; padding:16px; background:rgba(255,200,50,0.08); border:1px solid rgba(255,200,50,0.2); border-radius:8px">
+  <p class="label">核心建议</p>
+  <p>先做 <strong>方案 A</strong> 让客户 2-3 天内能访问，同步开始方案 B 的数据库。<strong>不要等 Next.js 重写</strong>，那是第二阶段的事。</p>
+</div>

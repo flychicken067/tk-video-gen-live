@@ -1,0 +1,53 @@
+<h2>部署方案对比</h2>
+<p class="subtitle">核心问题：Vercel 在中国大陆访问不稳定</p>
+
+<div class="section">
+  <div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:8px;padding:14px;margin-bottom:16px">
+    <p style="font-size:13px;color:#fca5a5;font-weight:600;margin-bottom:4px">⚠️ Vercel 的问题</p>
+    <p style="font-size:12px;color:#e2e8f0">Vercel 的 <code>.vercel.app</code> 域名在中国大陆访问极慢或间歇性超时，不适合给中国客户演示。技术上也有限制：视频生成需要轮询（30-60秒），Vercel 免费版函数超时只有 10 秒。</p>
+  </div>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="railway" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>🆓 Railway（推荐，免费起步）</h3>
+      <p>选 <strong>Hong Kong 区域</strong>，Node.js 直接部署，无函数超时限制，每月 $5 免费额度够跑 MVP。中国大陆访问正常。</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>优点</h4><ul><li>免费额度够用</li><li>HK 节点，中国可访问</li><li>支持长连接/轮询</li><li>一键 Git 部署</li></ul></div>
+        <div class="cons"><h4>缺点</h4><ul><li>需要绑定信用卡验证身份</li><li>超出免费额度后按量收费</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="tencent" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>💴 腾讯云 HK 轻量（稳定，¥24/月）</h3>
+      <p>最稳定的中国可访问方案，延迟低，完全可控。需要买服务器（¥24/月），国内用户首选。</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>优点</h4><ul><li>延迟最低（中国大陆 &lt;30ms）</li><li>完全可控，无限制</li><li>后续可直接申请 ICP 备案</li></ul></div>
+        <div class="cons"><h4>缺点</h4><ul><li>需要花钱（¥24/月）</li><li>需要自己配置服务器</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="flyio" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>🆓 Fly.io（免费，HK 节点）</h3>
+      <p>可部署到 Hong Kong 节点，免费套餐包含 3 个共享 CPU + 256MB 内存，中国大陆基本可访问。</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>优点</h4><ul><li>完全免费起步</li><li>HK 节点</li></ul></div>
+        <div class="cons"><h4>缺点</h4><ul><li>免费机器冷启动慢（30秒+）</li><li>内存小，文件上传受限</li></ul></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:20px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:8px;padding:14px">
+  <p class="label">我的建议</p>
+  <p style="font-size:13px;color:#e2e8f0"><strong>先用 Railway HK 免费跑 MVP</strong>，验证客户愿意付费后，再花 ¥24/月迁移到腾讯云正式域名。</p>
+  <p style="font-size:12px;color:#64748b;margin-top:6px">Railway 绑卡后每月有 $5 免费额度，MVP 阶段流量小完全够用，不会产生费用。</p>
+</div>
