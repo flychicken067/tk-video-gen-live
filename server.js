@@ -3,7 +3,13 @@ const path = require('path');
 
 const app = express();
 app.use(express.json());
+// Serve static files from public/ first, then root
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname)));
+// Explicit root handler
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 const JIMENG_API_URL = 'https://ark.cn-beijing.volces.com/api/v3/images/generations';
 const JIMENG_MODEL = 'doubao-seedream-5-0-260128'; // 账号已开通的最新版本
