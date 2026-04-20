@@ -21,7 +21,8 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: '请输入生成描述' });
   }
 
-  const sizeMap = { '1:1': '1024x1024', '2k': '2048x2048', '3k': '3072x3072' };
+  // Model requires ≥ 3,686,400 px; 2048×2048 = 4,194,304 px ✓
+  const sizeMap = { '1:1': '2048x2048', '2k': '2048x2048', '3k': '3072x3072' };
   const resolvedSize = sizeMap[size] || size;
 
   const fullPrompt = prompt.trim() + HOLO_SUFFIX;
