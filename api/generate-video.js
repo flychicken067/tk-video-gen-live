@@ -1,20 +1,20 @@
 // api/generate-video.js
-// 图生视频：接收 imageBase64/imageUrl + rotation + background
-// 向即梦 I2V API 提交异步任务，立即返回 taskId
-// 前端拿到 taskId 后去 /api/task/:taskId 轮询结果
+// 图转视频：接收 imageBase64 + rotation + background
+// 调用 Google Veo API，提交异步任务，返回 operationName 作为 taskId
+// 前端拿到 taskId 后轮询 /api/task-status?taskId=...
 
-const I2V_URL = 'https://ark.cn-beijing.volces.com/api/v3/contents/generations/tasks';
-const I2V_MODEL = 'doubao-seeddance-1-0-lite-i2v-250428';
+const VEO_BASE = 'https://generativelanguage.googleapis.com/v1beta';
+const VEO_MODEL = 'veo-3.0-generate-preview';
 
 const ROTATION_PROMPTS = {
-  horizontal: 'smooth horizontal 360-degree rotation around vertical Y-axis',
-  vertical:   'vertical flip rotation around horizontal X-axis',
-  spiral:     'spiral ascending motion with continuous rotation upward',
-  pulse:      'pulsing scale breathe animation with subtle slow rotation',
+  horizontal: 'smooth horizontal 360-degree rotation around vertical axis',
+  vertical:   'vertical flip rotation around horizontal axis',
+  spiral:     'spiral ascending motion with continuous rotation',
+  pulse:      'pulsing breathe scale animation with subtle slow rotation',
 };
 
 const BG_PROMPTS = {
-  pure_black: 'pure black background #000000, no background elements',
+  pure_black: 'pure black background #000000, no other elements',
   particles:  'pure black background with floating luminous particle streams',
   glow:       'dark background with soft radial neon glow halo around subject',
   cyber:      'dark background with dim cyan cyberpunk grid lines',
@@ -25,12 +25,12 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const ARK_API_KEY = process.env.ARK_API_KEY;
-  if (!ARK_API_KEY) {
-    return res.status(500).json({ error: 'ARK_API_KEY 未设置' });
+  const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+  if (!GEMINI_API_KEY) {
+    return res.status(500).json({ error: 'GEMINI_API_KEY 未设置' });
   }
 
-  const { imageBase64, imageUrl, rotation, background } = req.body;
+  const { imageBase64, rotation, background } = req.body;
 
   if (!rotation || !background) {
     return res.status(400).json({ error: '请选择旋转方式和背景效果' });
@@ -41,45 +41,52 @@ module.exports = async function handler(req, res) {
   if (!BG_PROMPTS[background]) {
     return res.status(400).json({ error: `无效的背景效果: ${background}` });
   }
-  if (!imageBase64 && !imageUrl) {
-    return res.status(400).json({ error: '请提供图片（上传或文生图 URL）' });
+  if (!imageBase64) {
+    return res.status(400).json({ error: '请提供图片' });
   }
 
   const prompt = [
+    'holographic 3D render, neon glow outline, seamless loop, suitable for holographic fan display',
     ROTATION_PROMPTS[rotation],
     BG_PROMPTS[background],
-    'holographic 3D render, neon glow outline, seamless loop, suitable for holographic fan display',
   ].join(', ');
 
-  // imageBase64 takes priority over imageUrl when both are provided.
-  // Ensure base64 is sent as a proper data URI (ByteDance API requires data: prefix).
-  const imageSource = imageBase64
-    ? (imageBase64.startsWith('data:') ? imageBase64 : `data:image/jpeg;base64,${imageBase64}`)
-    : imageUrl;
-
-  const content = [
-    { type: 'image_url', image_url: { url: imageSource } },
-    { type: 'text', text: prompt },
-  ];
+  // Strip data URI prefix if present
+  const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
 
   try {
-    const response = await fetch(I2V_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${ARK_API_KEY}`,
-      },
-      body: JSON.stringify({ model: I2V_MODEL, content }),
-    });
+    const resp = await fetch(
+      `${VEO_BASE}/models/${VEO_MODEL}:predictLongRunning?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          instances: [{
+            prompt,
+            image: { bytesBase64Encoded: base64Data, mimeType: 'image/jpeg' },
+          }],
+          parameters: {
+            aspectRatio: '1:1',
+            sampleCount: 1,
+            durationSeconds: 8,
+          },
+        }),
+      }
+    );
 
-    const data = await response.json();
+    const data = await resp.json();
 
-    if (!response.ok || !data.id) {
+    if (!resp.ok) {
       const msg = data?.error?.message || JSON.stringify(data);
-      return res.status(response.status || 500).json({ error: `I2V 任务创建失败: ${msg}` });
+      return res.status(resp.status).json({ error: `Veo API 错误: ${msg}` });
     }
 
-    res.json({ taskId: data.id, estimatedSeconds: 45 });
+    const operationName = data.name; // e.g. "operations/xxx"
+    if (!operationName) {
+      return res.status(500).json({ error: 'Veo 未返回操作名称，响应: ' + JSON.stringify(data) });
+    }
+
+    res.json({ taskId: operationName, estimatedSeconds: 120 });
   } catch (err) {
     res.status(500).json({ error: '网络错误: ' + err.message });
   }

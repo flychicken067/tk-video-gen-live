@@ -308,7 +308,7 @@ function AITab() {
         setProgress(30);
         pollRef.current = setInterval(async () => {
           try {
-            const pr = await fetch(`/api/task/${encodeURIComponent(data.taskId)}`);
+            const pr = await fetch(`/api/task-status?taskId=${encodeURIComponent(data.taskId)}`);
             const pd = await pr.json();
             if (pd.status === 'succeeded') {
               stopPoll(); setProgress(100);
@@ -316,10 +316,10 @@ function AITab() {
             } else if (pd.status === 'failed') {
               stopPoll(); setError(pd.error || '视频生成失败'); setLoading(false);
             } else {
-              setProgress(p => Math.min(p + 7, 90));
+              setProgress(p => Math.min(p + 5, 90));
             }
           } catch(e) { stopPoll(); setError('轮询失败: ' + e.message); setLoading(false); }
-        }, 3000);
+        }, 4000);
       }
     } catch(e) { setError('网络错误: ' + e.message); setLoading(false); }
   }
@@ -331,9 +331,7 @@ function AITab() {
     /* mode selector */
     h('div', { style:{ display:'flex', gap:10, marginBottom:24 } },
       h('button', { className:`mode-tab${mode==='text'?' active':''}`, onClick:()=>setMode('text') }, '关键词生图'),
-      h('button', { className:'mode-tab', style:{ opacity:0.45, cursor:'not-allowed', position:'relative' }, title:'视频生成模型开通中，敬请期待' },
-        '图转视频  🔒'
-      )
+      h('button', { className:`mode-tab${mode==='image'?' active':''}`, onClick:()=>setMode('image') }, '图转视频')
     ),
 
     h('div', { style:{ background:'#fff', borderRadius:10, padding:28, boxShadow:'0 1px 4px rgba(0,0,0,0.08)' } },
@@ -401,7 +399,7 @@ function AITab() {
           h('div', { className:'progress-fill', style:{ width:progress+'%' } })
         ),
         h('div', { style:{ textAlign:'center', fontSize:12, color:'#9ca3af', marginTop:6 } },
-          mode==='text' ? '正在生成图片...' : `视频生成中 ${progress}%，预计约 45 秒`
+          mode==='text' ? '正在生成图片...' : `视频生成中 ${progress}%，Veo 通常需要 1-2 分钟`
         )
       ),
 
