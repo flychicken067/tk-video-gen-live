@@ -1,15 +1,15 @@
 // api/custom-order.js
-// 定制委托：接收需求描述，通过飞书通知运营者
+// 内容定制委托：接收新版表单字段（公司/申请人/需求），通过飞书 Webhook 通知运营者
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { description, industry, contact } = req.body;
+  const { companyName, industry, name, position, phone, email, description } = req.body;
 
-  if (!description?.trim() || !contact?.trim()) {
-    return res.status(400).json({ error: '需求描述和联系方式为必填项' });
+  if (!name?.trim() || !phone?.trim() || !description?.trim()) {
+    return res.status(400).json({ error: '姓名、联系电话、需求描述为必填项' });
   }
 
   // Sanitize user input to prevent newline injection in Feishu notifications
@@ -25,10 +25,11 @@ module.exports = async function handler(req, res) {
           msg_type: 'text',
           content: {
             text: [
-              '📋 新定制委托！',
+              '📋 新内容定制委托！',
+              `公司：${s(companyName) || '未填'} / 行业：${s(industry) || '未填'}`,
+              `姓名：${s(name)} / 职位：${s(position) || '未填'}`,
+              `电话：${s(phone)} / 邮箱：${s(email) || '未填'}`,
               `需求：${s(description)}`,
-              `行业：${s(industry) || '未填'}`,
-              `联系方式：${s(contact)}`,
             ].join('\n'),
           },
         }),
@@ -38,5 +39,5 @@ module.exports = async function handler(req, res) {
     }
   }
 
-  res.json({ message: '需求已收到，我们将在 24 小时内报价！' });
+  res.json({ message: '申请已收到，我们将在 24 小时内与您联系！' });
 };
