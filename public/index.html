@@ -331,7 +331,9 @@ function AITab() {
     /* mode selector */
     h('div', { style:{ display:'flex', gap:10, marginBottom:24 } },
       h('button', { className:`mode-tab${mode==='text'?' active':''}`, onClick:()=>setMode('text') }, '关键词生图'),
-      h('button', { className:`mode-tab${mode==='image'?' active':''}`, onClick:()=>setMode('image') }, '图转视频')
+      h('button', { className:'mode-tab', style:{ opacity:0.45, cursor:'not-allowed', position:'relative' }, title:'视频生成模型开通中，敬请期待' },
+        '图转视频  🔒'
+      )
     ),
 
     h('div', { style:{ background:'#fff', borderRadius:10, padding:28, boxShadow:'0 1px 4px rgba(0,0,0,0.08)' } },
