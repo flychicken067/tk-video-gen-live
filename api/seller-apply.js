@@ -12,6 +12,9 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: '姓名和微信号为必填项' });
   }
 
+  // Sanitize user input to prevent newline injection in Feishu notifications
+  const s = (v) => (v || '').replace(/[\r\n]/g, ' ').trim();
+
   const webhookUrl = process.env.FEISHU_WEBHOOK_URL;
   if (webhookUrl) {
     try {
@@ -23,10 +26,10 @@ module.exports = async function handler(req, res) {
           content: {
             text: [
               '🎨 新卖家入驻申请！',
-              `姓名：${name}`,
-              `微信：${wechat}`,
-              `设计风格：${designStyle || '未填'}`,
-              `定价偏好：${priceRange || '未填'}`,
+              `姓名：${s(name)}`,
+              `微信：${s(wechat)}`,
+              `设计风格：${s(designStyle) || '未填'}`,
+              `定价偏好：${s(priceRange) || '未填'}`,
             ].join('\n'),
           },
         }),

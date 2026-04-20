@@ -14,6 +14,9 @@ module.exports = async function handler(req, res) {
 
   if (!ARK_API_KEY) return res.status(500).json({ error: 'ARK_API_KEY 未设置' });
   if (!taskId) return res.status(400).json({ error: '缺少 taskId' });
+  if (!/^[a-zA-Z0-9_-]{1,128}$/.test(taskId)) {
+    return res.status(400).json({ error: '无效的 taskId 格式' });
+  }
 
   try {
     const response = await fetch(`${TASK_BASE}/${taskId}`, {

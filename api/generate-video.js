@@ -35,18 +35,30 @@ module.exports = async function handler(req, res) {
   if (!rotation || !background) {
     return res.status(400).json({ error: '请选择旋转方式和背景效果' });
   }
+  if (!ROTATION_PROMPTS[rotation]) {
+    return res.status(400).json({ error: `无效的旋转方式: ${rotation}` });
+  }
+  if (!BG_PROMPTS[background]) {
+    return res.status(400).json({ error: `无效的背景效果: ${background}` });
+  }
   if (!imageBase64 && !imageUrl) {
     return res.status(400).json({ error: '请提供图片（上传或文生图 URL）' });
   }
 
   const prompt = [
-    ROTATION_PROMPTS[rotation] || ROTATION_PROMPTS.horizontal,
-    BG_PROMPTS[background]    || BG_PROMPTS.pure_black,
+    ROTATION_PROMPTS[rotation],
+    BG_PROMPTS[background],
     'holographic 3D render, neon glow outline, seamless loop, suitable for holographic fan display',
   ].join(', ');
 
+  // imageBase64 takes priority over imageUrl when both are provided.
+  // Ensure base64 is sent as a proper data URI (ByteDance API requires data: prefix).
+  const imageSource = imageBase64
+    ? (imageBase64.startsWith('data:') ? imageBase64 : `data:image/jpeg;base64,${imageBase64}`)
+    : imageUrl;
+
   const content = [
-    { type: 'image_url', image_url: { url: imageBase64 || imageUrl } },
+    { type: 'image_url', image_url: { url: imageSource } },
     { type: 'text', text: prompt },
   ];
 

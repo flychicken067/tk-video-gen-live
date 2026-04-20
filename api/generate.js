@@ -50,7 +50,8 @@ module.exports = async function handler(req, res) {
 
     const imageUrl = data?.data?.[0]?.url;
     if (!imageUrl) {
-      return res.status(500).json({ error: '即梦未返回图片，响应: ' + JSON.stringify(data) });
+      console.error('即梦未返回图片，响应体:', JSON.stringify(data));
+      return res.status(500).json({ error: '即梦未返回图片，请稍后重试' });
     }
 
     res.json({ url: imageUrl, revised_prompt: data?.data?.[0]?.revised_prompt });

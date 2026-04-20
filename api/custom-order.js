@@ -12,6 +12,9 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: '需求描述和联系方式为必填项' });
   }
 
+  // Sanitize user input to prevent newline injection in Feishu notifications
+  const s = (v) => (v || '').replace(/[\r\n]/g, ' ').trim();
+
   const webhookUrl = process.env.FEISHU_WEBHOOK_URL;
   if (webhookUrl) {
     try {
@@ -23,9 +26,9 @@ module.exports = async function handler(req, res) {
           content: {
             text: [
               '📋 新定制委托！',
-              `需求：${description}`,
-              `行业：${industry || '未填'}`,
-              `联系方式：${contact}`,
+              `需求：${s(description)}`,
+              `行业：${s(industry) || '未填'}`,
+              `联系方式：${s(contact)}`,
             ].join('\n'),
           },
         }),
