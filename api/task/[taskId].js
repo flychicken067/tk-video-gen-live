@@ -5,6 +5,10 @@
 const TASK_BASE = 'https://ark.cn-beijing.volces.com/api/v3/contents/generations/tasks';
 
 module.exports = async function handler(req, res) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
   const { taskId } = req.query;
   const ARK_API_KEY = process.env.ARK_API_KEY;
 
