@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>卫黎 3D 内容平台</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+  <script src="https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #020408; color: #e2e8f0; font-family: 'Inter', sans-serif; min-height: 100vh; }
+    .glass { background: rgba(255,255,255,0.02); backdrop-filter: blur(28px); border: 1px solid rgba(255,255,255,0.06); }
+    .btn-blue { background: #2563eb; color: #fff; border: 1px solid #3b82f6; transition: all 0.3s; cursor: pointer; }
+    .btn-blue:hover { background: #3b82f6; box-shadow: 0 0 30px rgba(59,130,246,0.5); transform: translateY(-1px); }
+    .orbitron { font-family: 'Orbitron', sans-serif; }
+    .pill-active { background: white; color: black; }
+    .param-pill { cursor: pointer; border-radius: 9999px; padding: 5px 16px; font-size: 12px; font-weight: 700; transition: all 0.2s; border: 1px solid rgba(255,255,255,0.08); color: #64748b; background: transparent; }
+    .param-pill.selected { background: #2563eb; color: white; border-color: #3b82f6; }
+    .param-pill:hover { border-color: rgba(255,255,255,0.2); color: #94a3b8; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .tab-btn { background: transparent; border: none; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700; color: #64748b; padding: 10px 20px; border-radius: 9999px; transition: all 0.2s; white-space: nowrap; }
+    .tab-btn.active { background: rgba(37,99,235,0.2); color: #38bdf8; border: 1px solid rgba(56,189,248,0.3); }
+    .tab-btn:hover:not(.active) { color: #94a3b8; background: rgba(255,255,255,0.04); }
+    input, textarea { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 0.75rem; color: #e2e8f0; font-family: 'Inter', sans-serif; font-size: 14px; padding: 10px 14px; width: 100%; outline: none; transition: border-color 0.2s; }
+    input:focus, textarea:focus { border-color: rgba(56,189,248,0.4); }
+    input::placeholder, textarea::placeholder { color: #475569; }
+    .progress-bar { height: 4px; background: rgba(255,255,255,0.06); border-radius: 9999px; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #2563eb, #38bdf8); border-radius: 9999px; animation: progress-anim 2s ease-in-out infinite; }
+    @keyframes progress-anim { 0% { width: 10%; } 50% { width: 80%; } 100% { width: 10%; } }
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .card-hover { transition: transform 0.2s, box-shadow 0.2s; }
+    .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+    .upload-zone { border: 2px dashed rgba(255,255,255,0.12); border-radius: 1.5rem; cursor: pointer; transition: border-color 0.2s, background 0.2s; }
+    .upload-zone:hover { border-color: rgba(56,189,248,0.4); background: rgba(56,189,248,0.03); }
+    .badge-free { background: linear-gradient(135deg, #16a34a, #22c55e); color: white; font-size: 10px; font-weight: 900; padding: 2px 8px; border-radius: 9999px; letter-spacing: 0.05em; }
+    .wechat-box { background: rgba(37,211,102,0.08); border: 1px solid rgba(37,211,102,0.25); border-radius: 1rem; padding: 12px 20px; display: flex; align-items: center; gap: 10px; }
+    label.form-label { font-size: 13px; font-weight: 700; color: #94a3b8; margin-bottom: 6px; display: block; }
+    .success-card { background: rgba(22,163,74,0.08); border: 1px solid rgba(22,163,74,0.25); border-radius: 1.5rem; padding: 48px 32px; text-align: center; }
+    .error-banner { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); border-radius: 0.75rem; padding: 10px 16px; color: #f87171; font-size: 13px; }
+    .tier-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 1.5rem; padding: 20px 24px; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+const e = React.createElement;
+const { useState, useEffect, useRef, useMemo, useCallback } = React;
+
+// ─── Data ──────────────────────────────────────────────────────────────────
+const ASSETS_BASE = [
+  { t: "金鳞神龙",   c: "动物", i: "assets/dragon.png",   h: "aspect-[14/21]", p: "59.0" },
+  { t: "皇家钻表",   c: "奢品", i: "assets/watch.png",    h: "aspect-[14/15]", p: "35.0" },
+  { t: "金鳞猛虎",   c: "动物", i: "assets/tiger.png",    h: "aspect-[14/19]", p: "19.9" },
+  { t: "极光运动鞋", c: "潮配", i: "assets/sneaker.png",  h: "aspect-[14/14]", p: "免费"  },
+  { t: "奢牌香水",   c: "奢品", i: "assets/perfume.png",  h: "aspect-[14/18]", p: "29.9" },
+  { t: "黑金流体",   c: "抽象", i: "assets/sphere.png",   h: "aspect-[14/14]", p: "免费"  },
+  { t: "能量核心",   c: "抽象", i: "assets/core.png",     h: "aspect-[14/14]", p: "24.9" },
+  { t: "商务魔方",   c: "商务", i: "assets/business.png", h: "aspect-[14/14]", p: "29.9" },
+];
+
+const CATEGORIES = ["全部", "动物", "奢品", "潮配", "抽象", "商务"];
+
+const ROTATIONS = [
+  { id: 'horizontal', label: '水平环绕' },
+  { id: 'vertical',   label: '垂直翻转' },
+  { id: 'spiral',     label: '螺旋上升' },
+  { id: 'pulse',      label: '脉冲呼吸' },
+];
+const BACKGROUNDS = [
+  { id: 'pure_black', label: '纯黑（标准）' },
+  { id: 'particles',  label: '粒子流光' },
+  { id: 'glow',       label: '暗光光晕' },
+  { id: 'cyber',      label: '赛博格栅' },
+];
+
+const DESIGN_STYLES = ["动物", "奢品", "潮配", "抽象", "商务", "自然", "赛博朋克"];
+const PRICE_RANGES  = ["免费分享", "¥9.9–29.9", "¥29.9–99", "面议"];
+const INDUSTRIES    = ["奢品", "电商", "餐饮", "汽车", "娱乐", "教育", "其他"];
+
+// Build 32-card grid (cycle ASSETS_BASE + 2 placeholders)
+const ALL_CARDS = (() => {
+  const cards = [];
+  for (let i = 0; i < 32; i++) {
+    cards.push({ ...ASSETS_BASE[i % ASSETS_BASE.length], id: i });
+  }
+  // Replace last 2 with placeholders
+  cards[30] = { t: "即将上线", c: "__placeholder__", i: null, h: "aspect-[14/14]", p: null, id: 30 };
+  cards[31] = { t: "即将上线", c: "__placeholder__", i: null, h: "aspect-[14/14]", p: null, id: 31 };
+  return cards;
+})();
+
+// ─── PaidModal ─────────────────────────────────────────────────────────────
+function PaidModal({ item, onClose }) {
+  const stopProp = (ev) => ev.stopPropagation();
+  return e('div', { className: 'modal-backdrop', onClick: onClose },
+    e('div', {
+      className: 'glass',
+      onClick: stopProp,
+      style: { borderRadius: '2rem', maxWidth: 400, width: '100%', padding: '36px 32px', position: 'relative' }
+    },
+      // Close button
+      e('button', {
+        onClick: onClose,
+        style: { position: 'absolute', top: 16, right: 16, background: 'rgba(255,255,255,0.06)', border: 'none', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', color: '#94a3b8', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center' }
+      }, '×'),
+      // Lock icon
+      e('div', { style: { textAlign: 'center', marginBottom: 20 } },
+        e('div', { style: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 56, height: 56, borderRadius: '50%', background: 'rgba(37,99,235,0.15)', border: '1px solid rgba(37,99,235,0.3)' } },
+          e('svg', { width: 24, height: 24, viewBox: '0 0 24 24', fill: 'none', stroke: '#38bdf8', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' },
+            e('rect', { x: 3, y: 11, width: 18, height: 11, rx: 2, ry: 2 }),
+            e('path', { d: 'M7 11V7a5 5 0 0 1 10 0v4' })
+          )
+        )
+      ),
+      // Title
+      e('h3', { className: 'orbitron', style: { textAlign: 'center', fontSize: 18, color: '#e2e8f0', marginBottom: 8 } }, item.t),
+      // Price
+      e('div', { style: { textAlign: 'center', fontSize: 28, fontWeight: 900, color: '#38bdf8', marginBottom: 20 } },
+        item.p === '免费' ? '免费' : `¥${item.p}`
+      ),
+      // Description
+      e('p', { style: { textAlign: 'center', color: '#94a3b8', fontSize: 13, lineHeight: 1.7, marginBottom: 20 } },
+        '请添加微信联系购买，获得高清 .mp4 全息视频文件'
+      ),
+      // WeChat box
+      e('div', { className: 'wechat-box', style: { justifyContent: 'center' } },
+        e('svg', { width: 20, height: 20, viewBox: '0 0 24 24', fill: '#22c55e' },
+          e('path', { d: 'M8.5 12a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm7 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2z' }),
+          e('path', { fillRule: 'evenodd', d: 'M12 2C6.477 2 2 6.253 2 11.5c0 2.394.894 4.582 2.36 6.26L3.5 21l3.532-1.765A10.43 10.43 0 0 0 12 21c5.523 0 10-4.253 10-9.5S17.523 2 12 2z' })
+        ),
+        e('span', { style: { color: '#22c55e', fontWeight: 900, fontSize: 16, letterSpacing: '0.05em' } }, 'weili_3d'),
+        e('span', { style: { color: '#64748b', fontSize: 12 } }, '微信号')
+      )
+    )
+  );
+}
+
+// ─── Tab1: 素材库 ──────────────────────────────────────────────────────────
+function MaterialLibrary() {
+  const [category, setCategory] = useState('全部');
+  const [paidModal, setPaidModal] = useState(null);
+
+  const filtered = useMemo(() => {
+    if (category === '全部') return ALL_CARDS;
+    return ALL_CARDS.filter(c => c.c === category || c.c === '__placeholder__');
+  }, [category]);
+
+  const handleCardClick = (card) => {
+    if (card.c === '__placeholder__') return;
+    if (card.p !== '免费') setPaidModal(card);
+  };
+
+  return e('div', null,
+    // Header
+    e('div', { style: { marginBottom: 28 } },
+      e('h2', { className: 'orbitron', style: { fontSize: 24, fontWeight: 900, color: '#e2e8f0', marginBottom: 6 } }, '素材库'),
+      e('p', { style: { color: '#64748b', fontSize: 14 } }, '高品质 3D 全息旋转素材，直接用于短视频与展示场景')
+    ),
+    // Search + filters row
+    e('div', { style: { display: 'flex', gap: 12, alignItems: 'center', marginBottom: 20, flexWrap: 'wrap' } },
+      e('div', { style: { flex: 1, minWidth: 200, position: 'relative' } },
+        e('input', { type: 'text', placeholder: '🔍  搜索素材名称…', style: { paddingLeft: 16 } })
+      )
+    ),
+    // Category pills
+    e('div', { className: 'no-scrollbar', style: { display: 'flex', gap: 8, marginBottom: 28, overflowX: 'auto', paddingBottom: 4 } },
+      CATEGORIES.map(cat =>
+        e('button', {
+          key: cat,
+          className: 'param-pill' + (category === cat ? ' selected' : ''),
+          onClick: () => setCategory(cat)
+        }, cat)
+      )
+    ),
+    // Grid
+    e('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 16 } },
+      filtered.map(card => {
+        if (card.c === '__placeholder__') {
+          return e('div', {
+            key: card.id,
+            className: 'glass card-hover',
+            style: { borderRadius: '1.5rem', overflow: 'hidden', opacity: 0.4 }
+          },
+            e('div', { style: { aspectRatio: '1', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 20 } },
+              e('div', { style: { fontSize: 28 } }, '🔒'),
+              e('span', { style: { fontSize: 12, color: '#475569', textAlign: 'center' } }, 'Seat Reserved')
+            )
+          );
+        }
+        const isFree = card.p === '免费';
+        return e('div', {
+          key: card.id,
+          className: 'glass card-hover',
+          style: { borderRadius: '1.5rem', overflow: 'hidden', cursor: 'pointer' },
+          onClick: () => handleCardClick(card)
+        },
+          // Image container
+          e('div', { style: { position: 'relative', overflow: 'hidden' } },
+            e('div', { className: card.h, style: {} }),
+            e('img', {
+              src: card.i,
+              alt: card.t,
+              style: { position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }
+            }),
+            // Free badge
+            isFree && e('div', { style: { position: 'absolute', top: 10, left: 10 } },
+              e('span', { className: 'badge-free' }, 'FREE')
+            ),
+            // Download button for free items
+            isFree && e('a', {
+              href: card.i,
+              download: card.t + '.png',
+              onClick: (ev) => ev.stopPropagation(),
+              style: { position: 'absolute', bottom: 10, right: 10, background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', textDecoration: 'none', backdropFilter: 'blur(8px)' }
+            },
+              e('svg', { width: 14, height: 14, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2.5, strokeLinecap: 'round', strokeLinejoin: 'round' },
+                e('path', { d: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4' }),
+                e('polyline', { points: '7 10 12 15 17 10' }),
+                e('line', { x1: 12, y1: 15, x2: 12, y2: 3 })
+              )
+            )
+          ),
+          // Card footer
+          e('div', { style: { padding: '12px 14px' } },
+            e('div', { style: { fontWeight: 700, fontSize: 13, color: '#e2e8f0', marginBottom: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }, card.t),
+            e('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' } },
+              e('span', { style: { fontSize: 11, color: '#475569', background: 'rgba(255,255,255,0.04)', padding: '2px 8px', borderRadius: 9999 } }, card.c),
+              e('span', { style: { fontSize: 13, fontWeight: 900, color: isFree ? '#22c55e' : '#38bdf8' } },
+                isFree ? '免费' : `¥${card.p}`
+              )
+            )
+          )
+        );
+      })
+    ),
+    // Modal
+    paidModal && e(PaidModal, { item: paidModal, onClose: () => setPaidModal(null) })
+  );
+}
+
+// ─── Tab2: AI生成 ──────────────────────────────────────────────────────────
+function AIGenerate() {
+  const [aiMode, setAiMode]           = useState('upload');
+  const [uploadedImg, setUploadedImg] = useState(null);
+  const [keyword, setKeyword]         = useState('');
+  const [rotation, setRotation]       = useState('');
+  const [background, setBackground]   = useState('');
+  const [genStep, setGenStep]         = useState('idle');
+  const [taskId, setTaskId]           = useState(null);
+  const [videoUrl, setVideoUrl]       = useState(null);
+  const [genError, setGenError]       = useState('');
+  const [t2iPreview, setT2iPreview]   = useState(null);
+  const fileInputRef = useRef(null);
+  const pollRef      = useRef(null);
+
+  const isGenerating = ['t2i','i2v','polling'].includes(genStep);
+
+  // Cleanup poll on unmount
+  useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
+
+  const handleFileChange = (ev) => {
+    const file = ev.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => setUploadedImg({ dataUrl: e.target.result, name: file.name });
+    reader.readAsDataURL(file);
+  };
+
+  const startPolling = (id) => {
+    setGenStep('polling');
+    pollRef.current = setInterval(async () => {
+      try {
+        const res  = await fetch(`/api/task/${id}`);
+        const data = await res.json();
+        if (data.status === 'completed') {
+          clearInterval(pollRef.current);
+          setVideoUrl(data.videoUrl);
+          setGenStep('done');
+        } else if (data.status === 'failed') {
+          clearInterval(pollRef.current);
+          setGenError(data.error || '渲染失败，请重试');
+          setGenStep('error');
+        }
+      } catch (err) {
+        clearInterval(pollRef.current);
+        setGenError('轮询出错：' + err.message);
+        setGenStep('error');
+      }
+    }, 3000);
+  };
+
+  const handleGenerate = async () => {
+    if (isGenerating) return;
+    setGenError('');
+    setVideoUrl(null);
+    setT2iPreview(null);
+    setTaskId(null);
+
+    try {
+      let imageUrl = null;
+      if (aiMode === 'keyword') {
+        setGenStep('t2i');
+        const r1   = await fetch('/api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: keyword, size: '1:1' }) });
+        const d1   = await r1.json();
+        imageUrl   = d1.url;
+        setT2iPreview(imageUrl);
+        setGenStep('i2v');
+        const r2   = await fetch('/api/generate-video', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ imageUrl, rotation, background }) });
+        const d2   = await r2.json();
+        setTaskId(d2.taskId);
+        startPolling(d2.taskId);
+      } else {
+        setGenStep('i2v');
+        const r2   = await fetch('/api/generate-video', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ imageBase64: uploadedImg.dataUrl, rotation, background }) });
+        const d2   = await r2.json();
+        setTaskId(d2.taskId);
+        startPolling(d2.taskId);
+      }
+    } catch (err) {
+      setGenError('生成失败：' + err.message);
+      setGenStep('error');
+    }
+  };
+
+  const stepLabel = { t2i: '正在生成参考图… ', i2v: '正在提交视频任务…', polling: '正在渲染旋转视频… 约 40 秒' };
+
+  return e('div', null,
+    e('div', { style: { marginBottom: 28 } },
+      e('h2', { className: 'orbitron', style: { fontSize: 24, fontWeight: 900, color: '#e2e8f0', marginBottom: 6 } }, 'AI 生成'),
+      e('p', { style: { color: '#64748b', fontSize: 14 } }, '上传产品图或输入关键词，一键生成 3D 旋转全息视频')
+    ),
+
+    // Sub-tabs
+    e('div', { className: 'glass', style: { borderRadius: '2rem', padding: '6px', display: 'inline-flex', gap: 4, marginBottom: 28 } },
+      e('button', { className: 'tab-btn' + (aiMode === 'upload' ? ' active' : ''), onClick: () => setAiMode('upload') }, '📸 上传产品图'),
+      e('button', { className: 'tab-btn' + (aiMode === 'keyword' ? ' active' : ''), onClick: () => setAiMode('keyword') }, '✏️ 输入关键词')
+    ),
+
+    // Main form card
+    e('div', { className: 'glass', style: { borderRadius: '2rem', padding: '28px 24px', marginBottom: 20 } },
+
+      // Upload zone or keyword input
+      aiMode === 'upload'
+        ? e('div', null,
+            e('label', { className: 'form-label' }, '产品图片'),
+            e('div', {
+              className: 'upload-zone',
+              style: { padding: uploadedImg ? 12 : 48, textAlign: 'center', marginBottom: 20 },
+              onClick: () => fileInputRef.current && fileInputRef.current.click()
+            },
+              uploadedImg
+                ? e('div', { style: { display: 'flex', alignItems: 'center', gap: 16 } },
+                    e('img', { src: uploadedImg.dataUrl, alt: 'preview', style: { width: 80, height: 80, objectFit: 'cover', borderRadius: '0.75rem' } }),
+                    e('div', null,
+                      e('div', { style: { color: '#e2e8f0', fontWeight: 700, marginBottom: 4 } }, uploadedImg.name),
+                      e('div', { style: { color: '#64748b', fontSize: 12 } }, '点击更换图片')
+                    )
+                  )
+                : e('div', null,
+                    e('div', { style: { fontSize: 40, marginBottom: 12 } }, '📁'),
+                    e('div', { style: { color: '#94a3b8', fontWeight: 700, marginBottom: 4 } }, '点击上传产品图'),
+                    e('div', { style: { color: '#475569', fontSize: 12 } }, '支持 PNG · JPG · WEBP')
+                  )
+            ),
+            e('input', { ref: fileInputRef, type: 'file', accept: 'image/*', style: { display: 'none' }, onChange: handleFileChange })
+          )
+        : e('div', { style: { marginBottom: 20 } },
+            e('label', { className: 'form-label' }, '产品关键词'),
+            e('input', {
+              type: 'text',
+              placeholder: '例：金色腕表 / 龙形摆件',
+              value: keyword,
+              onChange: ev => setKeyword(ev.target.value)
+            }),
+            t2iPreview && e('div', { style: { display: 'flex', alignItems: 'center', gap: 12, marginTop: 12, padding: '10px 14px', background: 'rgba(56,189,248,0.06)', borderRadius: '0.75rem', border: '1px solid rgba(56,189,248,0.2)' } },
+              e('img', { src: t2iPreview, alt: '参考图', style: { width: 48, height: 48, objectFit: 'cover', borderRadius: '0.5rem' } }),
+              e('span', { style: { color: '#38bdf8', fontSize: 13 } }, '参考图已生成…')
+            )
+          ),
+
+      // Rotation
+      e('div', { style: { marginBottom: 20 } },
+        e('label', { className: 'form-label' }, e('span', { style: { color: '#ef4444' } }, '🔴 '), '旋转方式（必选）'),
+        e('div', { style: { display: 'flex', gap: 8, flexWrap: 'wrap' } },
+          ROTATIONS.map(r =>
+            e('button', { key: r.id, className: 'param-pill' + (rotation === r.id ? ' selected' : ''), onClick: () => setRotation(r.id) }, r.label)
+          )
+        )
+      ),
+
+      // Background
+      e('div', { style: { marginBottom: 24 } },
+        e('label', { className: 'form-label' }, e('span', { style: { color: '#ef4444' } }, '🔴 '), '背景效果（必选）'),
+        e('div', { style: { display: 'flex', gap: 8, flexWrap: 'wrap' } },
+          BACKGROUNDS.map(b =>
+            e('button', { key: b.id, className: 'param-pill' + (background === b.id ? ' selected' : ''), onClick: () => setBackground(b.id) }, b.label)
+          )
+        )
+      ),
+
+      // Error banner
+      genError && e('div', { className: 'error-banner', style: { marginBottom: 16 } }, '⚠ ' + genError),
+
+      // Progress bar
+      isGenerating && e('div', { style: { marginBottom: 16 } },
+        e('div', { style: { color: '#64748b', fontSize: 13, marginBottom: 8 } }, stepLabel[genStep] || ''),
+        e('div', { className: 'progress-bar' },
+          e('div', { className: 'progress-fill' })
+        )
+      ),
+
+      // Generate button
+      e('button', {
+        className: 'btn-blue',
+        disabled: isGenerating,
+        onClick: handleGenerate,
+        style: { width: '100%', padding: '14px 0', borderRadius: '0.75rem', fontSize: 15, fontWeight: 900, opacity: isGenerating ? 0.6 : 1, cursor: isGenerating ? 'not-allowed' : 'pointer' }
+      }, isGenerating ? '生成中…' : '🎬 开始生成')
+    ),
+
+    // Result section
+    genStep === 'done' && videoUrl && e('div', { className: 'glass', style: { borderRadius: '2rem', padding: '24px', textAlign: 'center' } },
+      e('div', { style: { fontSize: 13, fontWeight: 700, color: '#22c55e', marginBottom: 16 } }, '✅ 视频生成完成！'),
+      e('video', { src: videoUrl, autoPlay: true, loop: true, muted: true, controls: true, style: { width: '100%', borderRadius: '1rem', maxHeight: 400 } }),
+      e('div', { style: { display: 'flex', gap: 12, marginTop: 16, justifyContent: 'center' } },
+        e('a', { href: videoUrl, download: 'hologram.mp4', className: 'btn-blue', style: { padding: '10px 24px', borderRadius: '0.75rem', fontWeight: 700, textDecoration: 'none', fontSize: 14 } }, '⬇ 下载视频'),
+        e('button', {
+          onClick: () => { setGenStep('idle'); setVideoUrl(null); setT2iPreview(null); setGenError(''); },
+          style: { padding: '10px 24px', borderRadius: '0.75rem', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', cursor: 'pointer', fontWeight: 700, fontSize: 14 }
+        }, '重新生成')
+      )
+    )
+  );
+}
+
+// ─── Tab3: 卖家入驻 ────────────────────────────────────────────────────────
+function SellerApply() {
+  const [name, setName]           = useState('');
+  const [wechat, setWechat]       = useState('');
+  const [designStyle, setStyle]   = useState('');
+  const [priceRange, setPrice]    = useState('');
+  const [submitting, setSubmit]   = useState(false);
+  const [success, setSuccess]     = useState(false);
+  const [errMsg, setErrMsg]       = useState('');
+
+  const handleSubmit = async () => {
+    if (!name.trim() || !wechat.trim()) { setErrMsg('请填写姓名和微信号'); return; }
+    setErrMsg(''); setSubmit(true);
+    try {
+      const res  = await fetch('/api/seller-apply', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, wechat, designStyle, priceRange }) });
+      if (!res.ok) throw new Error('服务器错误');
+      setSuccess(true);
+    } catch (err) {
+      setErrMsg('提交失败：' + err.message);
+    } finally {
+      setSubmit(false);
+    }
+  };
+
+  if (success) return e('div', null,
+    e('div', { style: { marginBottom: 28 } },
+      e('h2', { className: 'orbitron', style: { fontSize: 24, fontWeight: 900, color: '#e2e8f0', marginBottom: 6 } }, '卖家入驻'),
+    ),
+    e('div', { className: 'success-card' },
+      e('div', { style: { fontSize: 56, marginBottom: 16 } }, '✅'),
+      e('h3', { style: { fontSize: 20, fontWeight: 900, color: '#22c55e', marginBottom: 8 } }, '申请已提交！'),
+      e('p', { style: { color: '#64748b', fontSize: 14 } }, '我们会在 1-3 个工作日内通过微信与您联系，请保持畅通。')
+    )
+  );
+
+  return e('div', null,
+    e('div', { style: { marginBottom: 28 } },
+      e('h2', { className: 'orbitron', style: { fontSize: 24, fontWeight: 900, color: '#e2e8f0', marginBottom: 6 } }, '卖家入驻'),
+      e('p', { style: { color: '#64748b', fontSize: 14 } }, '成为卫黎平台创作者，销售您的 3D 全息素材')
+    ),
+
+    e('div', { className: 'glass', style: { borderRadius: '2rem', padding: '28px 24px', marginBottom: 20 } },
+      // 姓名
+      e('div', { style: { marginBottom: 16 } },
+        e('label', { className: 'form-label' }, '姓名 *'),
+        e('input', { type: 'text', placeholder: '您的真实姓名', value: name, onChange: ev => setName(ev.target.value) })
+      ),
+      // 微信号
+      e('div', { style: { marginBottom: 16 } },
+        e('label', { className: 'form-label' }, '微信号 *'),
+        e('input', { type: 'text', placeholder: '您的微信号', value: wechat, onChange: ev => setWechat(ev.target.value) })
+      ),
+      // 擅长风格
+      e('div', { style: { marginBottom: 16 } },
+        e('label', { className: 'form-label' }, '擅长风格'),
+        e('div', { style: { display: 'flex', gap: 8, flexWrap: 'wrap' } },
+          DESIGN_STYLES.map(s =>
+            e('button', { key: s, className: 'param-pill' + (designStyle === s ? ' selected' : ''), onClick: () => setStyle(designStyle === s ? '' : s) }, s)
+          )
+        )
+      ),
+      // 定价偏好
+      e('div', { style: { marginBottom: 24 } },
+        e('label', { className: 'form-label' }, '定价偏好'),
+        e('div', { style: { display: 'flex', gap: 8, flexWrap: 'wrap' } },
+          PRICE_RANGES.map(p =>
+            e('button', { key: p, className: 'param-pill' + (priceRange === p ? ' selected' : ''), onClick: () => setPrice(priceRange === p ? '' : p) }, p)
+          )
+        )
+      ),
+
+      errMsg && e('div', { className: 'error-banner', style: { marginBottom: 16 } }, '⚠ ' + errMsg),
+
+      e('button', {
+        className: 'btn-blue',
+        disabled: submitting,
+        onClick: handleSubmit,
+        style: { width: '100%', padding: '14px 0', borderRadius: '0.75rem', fontSize: 15, fontWeight: 900, opacity: submitting ? 0.6 : 1, cursor: submitting ? 'not-allowed' : 'pointer' }
+      }, submitting ? '提交中…' : '提交申请')
+    ),
+
+    // 分成说明
+    e('div', { className: 'glass', style: { borderRadius: '2rem', padding: '24px' } },
+      e('h4', { style: { fontWeight: 900, color: '#e2e8f0', marginBottom: 16, fontSize: 15 } }, '💰 分成说明'),
+      e('div', { style: { display: 'flex', gap: 12, flexWrap: 'wrap' } },
+        e('div', { className: 'tier-card', style: { flex: 1, minWidth: 120, textAlign: 'center' } },
+          e('div', { style: { fontSize: 28, fontWeight: 900, color: '#38bdf8' } }, '50%'),
+          e('div', { style: { fontSize: 12, color: '#64748b', marginTop: 4 } }, '平台运营')
+        ),
+        e('div', { className: 'tier-card', style: { flex: 1, minWidth: 120, textAlign: 'center' } },
+          e('div', { style: { fontSize: 28, fontWeight: 900, color: '#22c55e' } }, '50%'),
+          e('div', { style: { fontSize: 12, color: '#64748b', marginTop: 4 } }, '创作者收益')
+        ),
+        e('div', { className: 'tier-card', style: { flex: 1, minWidth: 120, textAlign: 'center' } },
+          e('div', { style: { fontSize: 28, fontWeight: 900, color: '#a78bfa' } }, '0%'),
+          e('div', { style: { fontSize: 12, color: '#64748b', marginTop: 4 } }, '免费素材不收费')
+        )
+      )
+    )
+  );
+}
+
+// ─── Tab4: 定制委托 ────────────────────────────────────────────────────────
+function CustomOrder() {
+  const [desc, setDesc]         = useState('');
+  const [industry, setIndustry] = useState('');
+  const [contact, setContact]   = useState('');
+  const [submitting, setSubmit] = useState(false);
+  const [success, setSuccess]   = useState(false);
+  const [errMsg, setErrMsg]     = useState('');
+
+  const handleSubmit = async () => {
+    if (!desc.trim() || !contact.trim()) { setErrMsg('请填写需求描述和联系方式'); return; }
+    setErrMsg(''); setSubmit(true);
+    try {
+      const res = await fetch('/api/custom-order', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ description: desc, industry, contact }) });
+      if (!res.ok) throw new Error('服务器错误');
+      setSuccess(true);
+    } catch (err) {
+      setErrMsg('提交失败：' + err.message);
+    } finally {
+      setSubmit(false);
+    }
+  };
+
+  if (success) return e('div', null,
+    e('div', { style: { marginBottom: 28 } },
+      e('h2', { className: 'orbitron', style: { fontSize: 24, fontWeight: 900, color: '#e2e8f0', marginBottom: 6 } }, '定制委托'),
+    ),
+    e('div', { className: 'success-card' },
+      e('div', { style: { fontSize: 56, marginBottom: 16 } }, '✅'),
+      e('h3', { style: { fontSize: 20, fontWeight: 900, color: '#22c55e', marginBottom: 8 } }, '申请已提交！'),
+      e('p', { style: { color: '#64748b', fontSize: 14 } }, '我们会在 24 小时内通过您提供的联系方式回复报价方案。')
+    )
+  );
+
+  return e('div', null,
+    e('div', { style: { marginBottom: 28 } },
+      e('h2', { className: 'orbitron', style: { fontSize: 24, fontWeight: 900, color: '#e2e8f0', marginBottom: 6 } }, '定制委托'),
+      e('p', { style: { color: '#64748b', fontSize: 14 } }, '告诉我们您的需求，我们为您量身定制专属 3D 全息内容')
+    ),
+
+    e('div', { className: 'glass', style: { borderRadius: '2rem', padding: '28px 24px', marginBottom: 20 } },
+      // 需求描述
+      e('div', { style: { marginBottom: 16 } },
+        e('label', { className: 'form-label' }, '需求描述 *'),
+        e('textarea', { rows: 4, placeholder: '请描述您的产品、场景和期望效果…', value: desc, onChange: ev => setDesc(ev.target.value) })
+      ),
+      // 行业
+      e('div', { style: { marginBottom: 16 } },
+        e('label', { className: 'form-label' }, '行业'),
+        e('div', { style: { display: 'flex', gap: 8, flexWrap: 'wrap' } },
+          INDUSTRIES.map(ind =>
+            e('button', { key: ind, className: 'param-pill' + (industry === ind ? ' selected' : ''), onClick: () => setIndustry(industry === ind ? '' : ind) }, ind)
+          )
+        )
+      ),
+      // 联系方式
+      e('div', { style: { marginBottom: 24 } },
+        e('label', { className: 'form-label' }, '联系方式 *'),
+        e('input', { type: 'text', placeholder: '微信号 / 手机号', value: contact, onChange: ev => setContact(ev.target.value) })
+      ),
+
+      errMsg && e('div', { className: 'error-banner', style: { marginBottom: 16 } }, '⚠ ' + errMsg),
+
+      e('button', {
+        className: 'btn-blue',
+        disabled: submitting,
+        onClick: handleSubmit,
+        style: { width: '100%', padding: '14px 0', borderRadius: '0.75rem', fontSize: 15, fontWeight: 900, opacity: submitting ? 0.6 : 1, cursor: submitting ? 'not-allowed' : 'pointer' }
+      }, submitting ? '提交中…' : '提交委托')
+    ),
+
+    // 价格参考
+    e('div', { className: 'glass', style: { borderRadius: '2rem', padding: '24px' } },
+      e('h4', { style: { fontWeight: 900, color: '#e2e8f0', marginBottom: 16, fontSize: 15 } }, '📋 价格参考'),
+      e('div', { style: { display: 'flex', flexDirection: 'column', gap: 12 } },
+        [
+          { name: '标准定制', price: '¥199', desc: '1条旋转视频，5秒，1080×1080', color: '#38bdf8' },
+          { name: '品牌套餐', price: '¥599', desc: '5条不同效果，含修改2次', color: '#a78bfa' },
+          { name: '展会套装', price: '¥1,299', desc: '10条+专属背景+极速48h交付', color: '#f59e0b' },
+        ].map(tier =>
+          e('div', { key: tier.name, className: 'tier-card', style: { display: 'flex', alignItems: 'center', gap: 16 } },
+            e('div', { style: { minWidth: 80, fontSize: 18, fontWeight: 900, color: tier.color } }, tier.price),
+            e('div', null,
+              e('div', { style: { fontWeight: 700, color: '#e2e8f0', marginBottom: 2 } }, tier.name),
+              e('div', { style: { color: '#64748b', fontSize: 13 } }, tier.desc)
+            )
+          )
+        )
+      )
+    )
+  );
+}
+
+// ─── App Shell ─────────────────────────────────────────────────────────────
+function App() {
+  const [tab, setTab] = useState(0);
+  const TABS = ['素材库', 'AI生成', '卖家入驻', '定制委托'];
+  const CONTENT = [MaterialLibrary, AIGenerate, SellerApply, CustomOrder];
+  const CurrentTab = CONTENT[tab];
+
+  return e('div', { style: { minHeight: '100vh', background: '#020408' } },
+    // Top nav
+    e('header', {
+      className: 'glass',
+      style: { position: 'sticky', top: 0, zIndex: 100, borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '0 16px' }
+    },
+      e('div', { style: { maxWidth: 900, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 60 } },
+        // Logo
+        e('div', { className: 'orbitron', style: { fontSize: 16, fontWeight: 900, letterSpacing: '0.1em', background: 'linear-gradient(90deg, #38bdf8, #2563eb)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' } }, '卫黎 3D'),
+        // Tab nav
+        e('nav', { className: 'no-scrollbar', style: { display: 'flex', gap: 4, overflowX: 'auto' } },
+          TABS.map((t, i) =>
+            e('button', { key: t, className: 'tab-btn' + (tab === i ? ' active' : ''), onClick: () => setTab(i) }, t)
+          )
+        )
+      )
+    ),
+
+    // Page content
+    e('main', { style: { maxWidth: 900, margin: '0 auto', padding: '32px 16px 80px' } },
+      e(CurrentTab, null)
+    )
+  );
+}
+
+// ─── Mount ─────────────────────────────────────────────────────────────────
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(e(App, null));
+</script>
+</body>
+</html>
