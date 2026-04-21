@@ -4,7 +4,7 @@
 // 前端拿到 taskId 后轮询 /api/task-status?taskId=...
 
 const VEO_BASE = 'https://generativelanguage.googleapis.com/v1beta';
-const VEO_MODEL = 'veo-3.0-generate-preview';
+const VEO_MODEL = 'veo-3.1-lite-generate-preview';
 
 const ROTATION_PROMPTS = {
   horizontal: 'smooth horizontal 360-degree rotation around vertical axis',
