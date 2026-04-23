@@ -71,7 +71,7 @@ module.exports = async function handler(req, res) {
             image: { bytesBase64Encoded: base64Data, mimeType: 'image/jpeg' },
           }],
           parameters: {
-            aspectRatio: '1:1',
+            aspectRatio: '16:9',
             sampleCount: 1,
             durationSeconds: 8,
           },
