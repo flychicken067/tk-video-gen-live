@@ -83,7 +83,7 @@ FEISHU_WEBHOOK_URL=https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxx
 - [ ] **Step 1.3：创建 .env（填入真实 Key，不提交）**
 
 ```
-ARK_API_KEY=ark-4b5e52b8-4b47-4e41-b1fc-5f48ca85996b-13b44
+ARK_API_KEY=ark-your-real-key-here
 FEISHU_WEBHOOK_URL=
 ```
 
@@ -1493,7 +1493,7 @@ vercel --prod
 
 ```bash
 vercel env add ARK_API_KEY production
-# 粘贴：ark-4b5e52b8-4b47-4e41-b1fc-5f48ca85996b-13b44
+# 粘贴：ark-your-real-key-here
 # 按 Enter
 
 vercel env add FEISHU_WEBHOOK_URL production

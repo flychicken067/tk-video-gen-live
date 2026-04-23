@@ -3,640 +3,228 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>卫黎全息 · 3D内容平台</title>
-  <link href="https://fonts.loli.net/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+  <title>卫黎全息 · HoloMax Pro | 线上正式版</title>
+  <link href="https://fonts.loli.net/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.staticfile.org/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdn.staticfile.org/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <style>
+    :root { --primary: #3b82f6; --bg: #f8fafc; --text: #1e293b; --border: #e2e8f0; }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #f0f2f5; color: #1a1a2e; font-family: 'Inter', sans-serif; min-height: 100vh; }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
 
-    /* ── nav ── */
-    .nav-tab {
-      padding: 8px 28px; border-radius: 6px; font-size: 15px; font-weight: 600;
-      cursor: pointer; border: 2px solid #d0d5dd; background: #fff; color: #374151;
-      transition: all 0.18s; white-space: nowrap; font-family: 'Inter', sans-serif;
-    }
-    .nav-tab:hover { border-color: #1a73e8; color: #1a73e8; }
-    .nav-tab.active { background: #1a73e8; border-color: #1a73e8; color: #fff; }
+    .nav-container { background: #fff; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 1000; }
+    .nav-inner { max-width: 1300px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; }
+    .nav-tabs { display: flex; gap: 4px; }
+    .nav-tab { padding: 10px 24px; border-radius: 4px; font-size: 15px; font-weight: 700; cursor: pointer; border: none; background: transparent; color: #1e293b; transition: 0.2s; }
+    .nav-tab.active { background: #3b82f6; color: #fff; }
 
-    /* ── category pill ── */
-    .cat-pill {
-      padding: 5px 16px; border-radius: 20px; font-size: 13px; font-weight: 600;
-      cursor: pointer; border: 1.5px solid #d0d5dd; background: #fff; color: #6b7280;
-      transition: all 0.16s; white-space: nowrap; font-family: 'Inter', sans-serif;
-    }
-    .cat-pill:hover { border-color: #1a73e8; color: #1a73e8; }
-    .cat-pill.active { background: #1a73e8; border-color: #1a73e8; color: #fff; }
+    .hero-container { padding: 60px 24px; text-align: center; background: #fff; }
+    .hero-title { font-size: 24px; font-weight: 800; margin-bottom: 30px; }
+    .agent-tag { color: var(--primary); border-bottom: 2px solid var(--primary); cursor: pointer; }
+    
+    .gen-box { max-width: 900px; margin: 0 auto; background: #fff; border: 1.5px solid #e2e8f0; border-radius: 24px; padding: 20px; text-align: left; box-shadow: 0 4px 30px rgba(0,0,0,0.02); }
+    .gen-toolbar { display: flex; justify-content: space-between; align-items: center; padding-top: 15px; border-top: 1px solid #f1f5f9; }
+    .tool-btn { padding: 6px 12px; border-radius: 8px; border: 1px solid #e2e8f0; background: #fff; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+    .send-btn { width: 36px; height: 36px; background: #3b82f6; border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; cursor: pointer; }
 
-    /* ── option pill (rotation / bg selectors) ── */
-    .opt-pill {
-      padding: 7px 18px; border-radius: 20px; font-size: 13px; font-weight: 600;
-      cursor: pointer; border: 1.5px solid #d0d5dd; background: #fff; color: #6b7280;
-      transition: all 0.16s; white-space: nowrap; font-family: 'Inter', sans-serif;
-    }
-    .opt-pill:hover { border-color: #1a73e8; color: #1a73e8; }
-    .opt-pill.selected { background: #1a73e8; border-color: #1a73e8; color: #fff; }
+    .showcase-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1.5fr; gap: 12px; max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+    .showcase-item { border-radius: 12px; overflow: hidden; position: relative; aspect-ratio: 4/5; }
+    .showcase-item img { width: 100%; height: 100%; object-fit: cover; }
 
-    /* ── card ── */
-    .card { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); overflow: hidden; transition: box-shadow 0.2s, transform 0.2s; cursor: pointer; }
-    .card:hover { box-shadow: 0 4px 16px rgba(26,115,232,0.18); transform: translateY(-2px); }
+    .cat-bar { display: flex; gap: 24px; justify-content: center; margin: 40px 0; font-size: 16px; font-weight: 800; }
+    .cat-item { cursor: pointer; transition: 0.2s; color: #64748b; }
+    .cat-item.active { color: #000; }
 
-    /* ── primary button ── */
-    .btn-primary { background: #1a73e8; color: #fff; border: none; border-radius: 6px; padding: 10px 32px; font-size: 14px; font-weight: 700; cursor: pointer; transition: background 0.18s; font-family: 'Inter', sans-serif; }
-    .btn-primary:hover { background: #1558b0; }
-    .btn-primary:disabled { background: #93c4f7; cursor: not-allowed; }
+    .asset-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; max-width: 1300px; margin: 0 auto; padding: 0 24px; }
+    .asset-card { background: #fff; border-radius: 12px; overflow: hidden; cursor: pointer; transition: 0.2s; border: 1px solid transparent; }
+    .asset-card:hover { border-color: var(--primary); transform: translateY(-4px); }
+    .asset-thumb { width: 100%; aspect-ratio: 16/10; background: #000; position: relative; }
+    .asset-info { padding: 12px; }
+    .asset-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+    .asset-price { color: var(--primary); font-weight: 900; }
 
-    /* ── secondary button ── */
-    .btn-secondary { background: #fff; color: #374151; border: 1.5px solid #d0d5dd; border-radius: 6px; padding: 10px 28px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.18s; font-family: 'Inter', sans-serif; }
-    .btn-secondary:hover { border-color: #1a73e8; color: #1a73e8; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 2000; display: flex; align-items: center; justify-content: center; }
+    .modal-content { background: #fff; width: 1100px; border-radius: 20px; display: flex; overflow: hidden; }
+    .price-option { display: flex; align-items: center; gap: 12px; padding: 16px; border: 1.5px solid #e2e8f0; border-radius: 12px; margin-bottom: 12px; cursor: pointer; }
+    .price-option.active { border-color: var(--primary); background: #eff6ff; }
 
-    /* ── inputs ── */
-    input, textarea {
-      background: #fff; border: 1.5px solid #d0d5dd; border-radius: 6px;
-      color: #1a1a2e; font-family: 'Inter', sans-serif; font-size: 14px;
-      padding: 10px 14px; width: 100%; outline: none; transition: border-color 0.18s;
-    }
-    input:focus, textarea:focus { border-color: #1a73e8; box-shadow: 0 0 0 3px rgba(26,115,232,0.12); }
-    input::placeholder, textarea::placeholder { color: #9ca3af; }
+    .checkout-container { max-width: 1000px; margin: 60px auto; display: grid; grid-template-columns: 1fr 340px; gap: 30px; padding: 0 24px; }
+    .checkout-main { background: #fff; border-radius: 20px; padding: 40px; border: 1px solid var(--border); }
+    .checkout-side { background: #fff; border-radius: 20px; padding: 40px; border: 1px solid var(--border); position: sticky; top: 100px; }
+    .btn-black { background: #000; color: #fff; border: none; border-radius: 50px; padding: 16px; width: 100%; font-weight: 800; cursor: pointer; margin-bottom: 12px; }
+    .btn-white { background: #fff; border: 1.5px solid #000; color: #000; border-radius: 50px; padding: 16px; width: 100%; font-weight: 800; cursor: pointer; }
 
-    /* ── section header ── */
-    .section-hd {
-      background: #1a73e8; color: #fff; padding: 8px 16px; border-radius: 6px;
-      font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px;
-      margin-bottom: 16px;
-    }
+    .form-section { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 40px; max-width: 900px; margin: 0 auto; }
+    .form-group-title { background: #f8fafc; padding: 10px 15px; border-radius: 6px; font-weight: 800; font-size: 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px; }
+    .form-label { font-size: 13px; font-weight: 700; color: #475569; margin-bottom: 8px; display: block; }
+    .form-label span { color: #ef4444; margin-right: 4px; }
+    input, textarea { width: 100%; padding: 12px; border: 1.5px solid #e2e8f0; border-radius: 8px; outline: none; }
 
-    /* ── modal ── */
-    .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; display: flex; align-items: center; justify-content: center; }
-    .modal-box { background: #fff; border-radius: 12px; box-shadow: 0 8px 40px rgba(0,0,0,0.18); max-width: 820px; width: 95%; display: flex; overflow: hidden; }
+    .profile-container { display: flex; gap: 40px; max-width: 1300px; margin: 0 auto; padding: 40px 24px; }
+    .side-menu { width: 280px; }
+    .side-link { padding: 16px 0; font-size: 18px; font-weight: 800; color: #1e293b; cursor: pointer; }
+    .user-card { background: #fff; border-radius: 20px; border: 1px solid #e2e8f0; padding: 40px; display: flex; gap: 30px; margin-bottom: 30px; position: relative; flex: 1; }
+    .avatar { width: 80px; height: 80px; background: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 32px; }
+    .balance-grid { display: flex; gap: 60px; margin-top: 20px; }
+    .balance-val { font-size: 20px; font-weight: 900; }
+    .balance-label { font-size: 12px; color: #94a3b8; margin-top: 4px; }
 
-    /* ── scrollbar hide ── */
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-    /* ── progress ── */
-    .progress-bar { height: 4px; background: #e5e7eb; border-radius: 9999px; overflow: hidden; }
-    .progress-fill { height: 100%; background: #1a73e8; border-radius: 9999px; transition: width 0.4s; }
-
-    /* ── tag ── */
-    .tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 4px; background: #eff6ff; color: #1a73e8; font-weight: 600; }
-
-    /* ── left sidebar ── */
-    .sidebar-item { padding: 10px 16px; border-radius: 6px; font-size: 14px; font-weight: 600; color: #374151; cursor: pointer; transition: all 0.16s; }
-    .sidebar-item:hover { background: #eff6ff; color: #1a73e8; }
-    .sidebar-item.active { background: #eff6ff; color: #1a73e8; }
-
-    /* ── stat card ── */
-    .stat-card { background: #fff; border-radius: 10px; padding: 18px 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
-
-    /* ── mode tab ── */
-    .mode-tab { padding: 8px 24px; border-radius: 20px; font-size: 14px; font-weight: 700; cursor: pointer; border: 1.5px solid #d0d5dd; background: #fff; color: #6b7280; transition: all 0.18s; font-family: 'Inter', sans-serif; }
-    .mode-tab.active { background: #1a73e8; border-color: #1a73e8; color: #fff; }
+    .animate-fade { animation: fadeIn 0.4s ease; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   </style>
 </head>
 <body>
 <div id="root"></div>
 <script>
-const { createElement: h, useState, useEffect, useRef } = React;
+const { createElement: h, useState, useEffect } = React;
 
-/* ── data ───────────────────────────────────────── */
-const CATS = ['全部','LOGO','奶茶','咖啡','酒水','饮料','动物','植物','节日','人物','科幻','汽车'];
-
-const FREE_ITEMS = [
-  { id:1,  title:'全息龙 LOGO',      cat:'LOGO', tags:['4K','免费'], thumb:'https://picsum.photos/seed/fl1/320/240' },
-  { id:2,  title:'珍珠奶茶旋转',     cat:'奶茶', tags:['4K','免费'], thumb:'https://picsum.photos/seed/fl2/320/240' },
-  { id:3,  title:'威士忌酒瓶',       cat:'酒水', tags:['4K','免费'], thumb:'https://picsum.photos/seed/fl3/320/240' },
-  { id:4,  title:'赛博独角兽',       cat:'动物', tags:['4K','免费'], thumb:'https://picsum.photos/seed/fl4/320/240' },
-  { id:5,  title:'霓虹樱花树',       cat:'植物', tags:['4K','免费'], thumb:'https://picsum.photos/seed/fl5/320/240' },
-  { id:6,  title:'春节灯笼',         cat:'节日', tags:['4K','免费'], thumb:'https://picsum.photos/seed/fl6/320/240' },
-  { id:7,  title:'星际机械狼',       cat:'科幻', tags:['4K','免费'], thumb:'https://picsum.photos/seed/fl7/320/240' },
-  { id:8,  title:'古风美女',         cat:'人物', tags:['4K','免费'], thumb:'https://picsum.photos/seed/fl8/320/240' },
-  { id:9,  title:'咖啡香气',         cat:'咖啡', tags:['4K','免费'], thumb:'https://picsum.photos/seed/fl9/320/240' },
-  { id:10, title:'精灵兔',           cat:'动物', tags:['4K','免费'], thumb:'https://picsum.photos/seed/fl10/320/240' },
+const API_BASE = 'https://yanglei-pied.vercel.app/api';
+const CATS = ['全部', 'LOGO', '奶茶', '咖啡', '酒水', '饮料', '动物', '植物', '节日', '人物', '科幻', '汽车'];
+const ASSETS = [
+  { id:1, title:'全息金龙 3D 动效', price:0, thumb:'./assets/dragon.png' },
+  { id:2, title:'招财猛虎', price:24.98, thumb:'./assets/tiger.png' },
+  { id:3, title:'皇家钻表', price:9.99, thumb:'./assets/watch.png' },
+  { id:4, title:'奢牌香水', price:0, thumb:'./assets/perfume.png' },
+  { id:5, title:'极光运动鞋', price:24.98, thumb:'./assets/sneaker.png' },
 ];
 
-const PAID_ITEMS = [
-  { id:101, title:'全息运动鞋',       cat:'LOGO',  tags:['4K','9.38M'], thumb:'https://picsum.photos/seed/pd1/320/240', price:9.99 },
-  { id:102, title:'动态 LOGO 套装×12',cat:'LOGO',  tags:['4K','套装'],  thumb:'https://picsum.photos/seed/pd2/320/240', price:49  },
-  { id:103, title:'咖啡香气动效',     cat:'咖啡',  tags:['4K','动效'],  thumb:'https://picsum.photos/seed/pd3/320/240', price:29  },
-  { id:104, title:'清明上河图',       cat:'节日',  tags:['4K','历史'],  thumb:'https://picsum.photos/seed/pd4/320/240', price:39  },
-  { id:105, title:'超跑展示',         cat:'汽车',  tags:['4K','3D'],    thumb:'https://picsum.photos/seed/pd5/320/240', price:59  },
-  { id:106, title:'太空人漫游',       cat:'科幻',  tags:['4K','科幻'],  thumb:'https://picsum.photos/seed/pd6/320/240', price:49  },
-  { id:107, title:'威士忌旋涡',       cat:'酒水',  tags:['4K','全息'],  thumb:'https://picsum.photos/seed/pd7/320/240', price:39  },
-  { id:108, title:'红色灯笼',         cat:'节日',  tags:['4K','节日'],  thumb:'https://picsum.photos/seed/pd8/320/240', price:19  },
-];
-
-/* ── image compress ──────────────────────────────── */
-function compressImage(file, cb) {
-  const reader = new FileReader();
-  reader.onload = e => {
-    const img = new Image();
-    img.onload = () => {
-      const MAX = 1024;
-      let { width: w, height: ht } = img;
-      if (w > MAX || ht > MAX) {
-        if (w > ht) { ht = Math.round(ht * MAX / w); w = MAX; }
-        else { w = Math.round(w * MAX / ht); ht = MAX; }
-      }
-      const c = document.createElement('canvas');
-      c.width = w; c.height = ht;
-      c.getContext('2d').drawImage(img, 0, 0, w, ht);
-      cb(c.toDataURL('image/jpeg', 0.75));
-    };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
-}
-
-/* ── PurchaseModal ───────────────────────────────── */
-function PurchaseModal({ item, onClose }) {
-  const [tier, setTier] = useState('personal');
-  const TIERS = [
-    { id:'personal',  label:'个人授权', price:'¥ 9.99',  desc:'仅限个人非商业使用' },
-    { id:'business',  label:'企业授权', price:'¥ 24.98', desc:'商业用途，单品牌授权' },
-    { id:'unlimited', label:'无限制授权',price:'¥ 99',   desc:'多品牌 / 买断授权' },
-  ];
-  const selected = TIERS.find(t => t.id === tier);
-  return h('div', { className:'modal-bg', onClick:onClose },
-    h('div', { className:'modal-box', onClick:e=>e.stopPropagation() },
-      /* left: preview */
-      h('div', { style:{ flex:'0 0 380px', background:'#000', position:'relative' } },
-        h('img', { src:item.thumb, alt:item.title, style:{ width:'100%', height:'100%', objectFit:'cover', opacity:0.85 } }),
-        h('div', { style:{ position:'absolute', bottom:12, left:12, display:'flex', gap:6 } },
-          item.tags.map(t => h('span', { key:t, className:'tag' }, t))
+function HomeView() {
+  return h('div', { className:'animate-fade' },
+    h('div', { className:'hero-container' },
+      h('div', { className:'hero-title' }, '开启你的 ', h('span', { className:'agent-tag' }, 'Agent 模式 ⌵'), ' 即刻造梦！'),
+      h('div', { className:'gen-box' },
+        h('div', { style:{ display:'flex', gap:20, marginBottom:20 } },
+          h('div', { style:{ width:60, height:80, background:'#f1f5f9', borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center', color:'#94a3b8', fontSize:20 } }, '+'),
+          h('textarea', { style:{ flex:1, border:'none', outline:'none', resize:'none', fontSize:14 }, placeholder:'输入想法、脚本或上传参考...' })
+        ),
+        h('div', { className:'gen-toolbar' },
+          h('div', { style:{ display:'flex', gap:10 } }, ['✨ Agent模式', '画 自动', '🔑 使用技能', '🔍 灵感搜索'].map(t => h('button', { key:t, className:'tool-btn' }, t))),
+          h('button', { className:'send-btn' }, '↑')
         )
       ),
-      /* right: info */
-      h('div', { style:{ flex:1, padding:'28px 24px', overflowY:'auto', maxHeight:520 } },
-        h('div', { style:{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:16 } },
-          h('div', null,
-            h('h3', { style:{ fontSize:20, fontWeight:800, color:'#1a1a2e' } }, item.title),
-            h('p', { style:{ fontSize:13, color:'#9ca3af', marginTop:4 } }, '卫黎全息 · 授权下载')
-          ),
-          h('button', { onClick:onClose, style:{ background:'none', border:'none', fontSize:20, cursor:'pointer', color:'#9ca3af' } }, '✕')
-        ),
-        /* tier selector */
-        h('div', { style:{ display:'flex', flexDirection:'column', gap:10, marginBottom:20 } },
-          TIERS.map(t =>
-            h('label', {
-              key:t.id,
-              style:{
-                display:'flex', alignItems:'center', gap:12, padding:'12px 14px', borderRadius:8, cursor:'pointer',
-                border: tier===t.id ? '2px solid #1a73e8' : '1.5px solid #e5e7eb',
-                background: tier===t.id ? '#eff6ff' : '#fff',
-              },
-              onClick: ()=>setTier(t.id)
-            },
-              h('input', { type:'radio', name:'tier', value:t.id, checked:tier===t.id, onChange:()=>setTier(t.id), style:{ accentColor:'#1a73e8' } }),
-              h('div', { style:{ flex:1 } },
-                h('div', { style:{ fontWeight:700, fontSize:14, color:'#1a1a2e' } }, t.label),
-                h('div', { style:{ fontSize:12, color:'#9ca3af', marginTop:2 } }, t.desc)
-              ),
-              h('div', { style:{ fontWeight:800, fontSize:18, color:'#1a73e8' } }, t.price)
-            )
+      h('div', { style:{ fontSize:40, fontWeight:900, marginTop:40 } }, '开始生成您的3D专属素材'),
+      h('div', { className:'cat-bar', style:{ margin:'20px 0' } }, CATS.slice(1).map(c => h('div', { key:c, className:'cat-item' }, c))),
+      h('div', { className:'showcase-grid' },
+        h('div', { className:'showcase-item', style:{ gridRow:'span 2' } }, h('img', { src:'https://images.unsplash.com/photo-1596443686812-2f45229eebc3?auto=format&fit=crop&q=80&w=400' })),
+        h('div', { className:'showcase-item' }, h('img', { src:'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&q=80&w=400' })),
+        h('div', { className:'showcase-item' }, h('img', { src:'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400' })),
+        h('div', { className:'showcase-item' }, h('img', { src:'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=400' })),
+        h('div', { className:'showcase-item', style:{ gridRow:'span 2' } }, h('img', { src:'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&q=80&w=400' })),
+        h('div', { className:'showcase-item', style:{ gridColumn:'span 3' } }, h('img', { src:'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=800' }))
+      )
+    )
+  );
+}
+
+function AssetDetail({ item, onClose, onBuy }) {
+  const [tier, setTier] = useState('personal');
+  const isFree = item.price === 0;
+  return h('div', { className:'modal-overlay', onClick:onClose },
+    h('div', { className:'modal-content', onClick:e=>e.stopPropagation() },
+      h('div', { style:{ flex:1, background:'#000', padding:40, display:'flex', alignItems:'center' } }, h('img', { src:item.thumb, style:{ width:'100%' } })),
+      h('div', { style:{ width:450, padding:40 } },
+        h('h2', { style:{ fontWeight:900, fontSize:24, marginBottom:10 } }, item.title),
+        h('div', { style:{ fontSize:12, color:'#94a3b8', marginBottom:30 } }, '格式: mp4  大小: 9.36M  分辨率: 1024x1024'),
+        isFree ? h('div', { style:{ padding:'40px 0' } }, h('div', { style:{ fontSize:20, fontWeight:900, color:'#10b981', marginBottom:20 } }, '免费专享素材'), h('button', { style:{ width:'100%', padding:16, borderRadius:12, background:'#10b981', color:'#fff', border:'none', fontWeight:800 } }, '立即下载')) : 
+        h('div', null,
+          h('div', { className:`price-option ${tier==='personal'?'active':''}`, onClick:()=>setTier('personal') }, h('input', { type:'radio', checked:tier==='personal', readOnly:true }), h('div', { style:{ flex:1 } }, h('div', { style:{ fontWeight:800 } }, '个人授权'), h('div', { style:{ fontSize:11, color:'#64748b' } }, '仅在云平台使用')), h('div', { style:{ fontWeight:900 } }, `¥ ${item.price}`)),
+          h('div', { className:`price-option ${tier==='biz'?'active':''}`, onClick:()=>setTier('biz') }, h('input', { type:'radio', checked:tier==='biz', readOnly:true }), h('div', { style:{ flex:1 } }, h('div', { style:{ fontWeight:800 } }, '企业授权'), h('div', { style:{ fontSize:11, color:'#64748b' } }, '支持下载使用')), h('div', { style:{ fontWeight:900 } }, '¥ 24.98')),
+          h('div', { style:{ display:'flex', gap:12, marginTop:40 } },
+            h('button', { style:{ flex:1, padding:16, borderRadius:12, border:'1.5px solid #e2e8f0', background:'#fff', fontWeight:800 } }, '加入购物车'),
+            h('button', { style:{ flex:1, padding:16, borderRadius:12, background:'#3b82f6', color:'#fff', border:'none', fontWeight:800 }, onClick:()=>onBuy(item) }, '立即购买')
           )
-        ),
-        h('div', { style:{ fontSize:13, color:'#6b7280', marginBottom:20 } },
-          `格式：mp4  ·  分辨率：1024×1024  ·  授权：${selected.label}`
-        ),
-        h('div', { style:{ display:'flex', gap:10 } },
-          h('button', { className:'btn-secondary', style:{ flex:1 } }, '加入购物车'),
-          h('button', { className:'btn-primary', style:{ flex:1 } }, '立即购买')
         )
       )
     )
   );
 }
 
-/* ── AssetGrid ───────────────────────────────────── */
-function AssetGrid({ items, paid }) {
-  const [cat, setCat] = useState('全部');
-  const [selected, setSelected] = useState(null);
-  const list = cat==='全部' ? items : items.filter(i=>i.cat===cat);
-  return h('div', null,
-    h('div', { style:{ display:'flex', gap:8, overflowX:'auto', paddingBottom:8, marginBottom:20 }, className:'no-scrollbar' },
-      CATS.map(c => h('button', { key:c, className:`cat-pill${cat===c?' active':''}`, onClick:()=>setCat(c) }, c))
-    ),
-    h('div', { style:{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:16 } },
-      list.map(item =>
-        h('div', { key:item.id, className:'card', onClick:()=>paid&&setSelected(item) },
-          h('div', { style:{ position:'relative' } },
-            h('img', { src:item.thumb, alt:item.title, style:{ width:'100%', aspectRatio:'4/3', objectFit:'cover', display:'block' } }),
-            !paid && h('div', { style:{ position:'absolute', top:8, left:8, background:'#16a34a', color:'#fff', fontSize:11, fontWeight:700, padding:'2px 8px', borderRadius:4 } }, '免费')
-          ),
-          h('div', { style:{ padding:'10px 12px' } },
-            h('div', { style:{ fontWeight:700, fontSize:14, color:'#1a1a2e', marginBottom:6 } }, item.title),
-            h('div', { style:{ display:'flex', justifyContent:'space-between', alignItems:'center' } },
-              h('div', { style:{ display:'flex', gap:4 } },
-                item.tags.map(t => h('span', { key:t, className:'tag' }, t))
-              ),
-              paid && h('div', { style:{ fontWeight:800, color:'#1a73e8', fontSize:15 } }, `¥${item.price}`)
-            )
-          )
-        )
-      )
-    ),
-    selected && h(PurchaseModal, { item:selected, onClose:()=>setSelected(null) })
+function CheckoutView({ item }) {
+  return h('div', { className:'checkout-container animate-fade' },
+    h('div', { className:'checkout-main' }, h('div', { style:{ fontWeight:800, marginBottom:30 } }, '订单内容：1件'), h('div', { style:{ display:'flex', gap:20, alignItems:'center', padding:'20px 0', borderTop:'1px solid #eee' } }, h('img', { src:item.thumb, style:{ width:100, borderRadius:8 } }), h('div', { style:{ flex:1 } }, h('div', { style:{ fontWeight:800 } }, item.title), h('div', { style:{ fontSize:12, color:'#94a3b8' } }, '类型: 视频素材')), h('div', { style:{ fontWeight:900 } }, `¥ ${item.price}`))),
+    h('div', { className:'checkout-side' }, h('div', { style:{ display:'flex', justifyContent:'space-between', marginBottom:20 } }, h('span', null, '合计'), h('span', { style:{ fontWeight:800 } }, `¥ ${item.price}`)), h('div', { style:{ background:'#f1f5f9', padding:12, borderRadius:8, fontSize:12, marginBottom:40 } }, '成为大客户，本单最高减 92.8 元'), h('div', { style:{ display:'flex', justifyContent:'space-between', marginBottom:40, fontSize:20, fontWeight:900 } }, h('span', null, '实付'), h('span', { style:{ color:'#ef4444' } }, `¥ ${item.price}`)), h('button', { className:'btn-black' }, '余额支付'), h('button', { className:'btn-white' }, '扫码支付'))
   );
 }
 
-/* ── AI Tab ──────────────────────────────────────── */
-const ROTATION_OPTS = [
-  { value:'horizontal', label:'水平旋转' },
-  { value:'vertical',   label:'垂直翻转' },
-  { value:'spiral',     label:'螺旋上升' },
-  { value:'pulse',      label:'呼吸律动' },
-];
-const BG_OPTS = [
-  { value:'pure_black', label:'纯黑背景' },
-  { value:'particles',  label:'粒子流光' },
-  { value:'glow',       label:'霓虹光晕' },
-  { value:'cyber',      label:'赛博格栅' },
-];
+function OrderView() {
+  return h('div', { style:{ padding:'60px 0' }, className:'animate-fade' },
+    h('div', { className:'form-section' },
+      h('div', { className:'form-group-title' }, h('span', null, '🏢'), '公司信息'),
+      h('div', { className:'form-grid' }, h('div', null, h('label', { className:'form-label' }, h('span', null, '*'), '公司名称'), h('input', { placeholder:'请输入公司名称' })), h('div', null, h('label', { className:'form-label' }, h('span', null, '*'), '所属行业'), h('input', { placeholder:'请输入所属行业' }))),
+      h('div', { className:'form-group-title' }, h('span', null, '👤'), '申请人信息'),
+      h('div', { className:'form-grid' }, h('div', null, h('label', { className:'form-label' }, h('span', null, '*'), '姓名'), h('input', { placeholder:'请输入姓名' })), h('div', null, h('label', { className:'form-label' }, h('span', null, '*'), '职位'), h('input', { placeholder:'请输入职位' })), h('div', null, h('label', { className:'form-label' }, h('span', null, '*'), '联系电话'), h('input', { placeholder:'请输入联系电话' })), h('div', null, h('label', { className:'form-label' }, h('span', null, '*'), '邮箱地址'), h('input', { placeholder:'请输入邮箱' }))),
+      h('div', { className:'form-group-title' }, h('span', null, '📝'), '定制需求'),
+      h('textarea', { placeholder:'详细描述您的全息展示需求...', rows:6 }),
+      h('button', { className:'btn-primary', style:{ width:'100%', padding:16, fontSize:16, marginTop:30 } }, '提交申请')
+    )
+  );
+}
+
+function ProfileView() {
+  const [active, setActive] = useState('账户余额');
+  return h('div', { className:'profile-container animate-fade' },
+    h('div', { className:'side-menu' }, ['已下载免费素材', '已下载付费素材', '已生成AI素材', '账户余额', '充值'].map(m => h('div', { key:m, className:'side-link', style:{ color:active===m?'#3b82f6':'' }, onClick:()=>setActive(m) }, m))),
+    h('div', { className:'user-card' }, h('div', { className:'avatar' }, '👤'), h('div', null, h('div', { style:{ fontSize:20, fontWeight:900 } }, 'v26041915224737', h('span', { style:{ marginLeft:12, fontSize:10, padding:'2px 8px', background:'#eee', borderRadius:4 } }, '★ 职业')), h('div', { style:{ fontSize:12, color:'#94a3b8', marginTop:8 } }, '今天是你成立第 5,171 天，与您陪伴 1 天'), h('div', { className:'balance-grid' }, h('div', { className:'balance-item' }, h('div', { className:'balance-val' }, '0'), h('div', { className:'balance-label' }, '充值余额 (元)')), h('div', { className:'balance-item' }, h('div', { className:'balance-val' }, '1'), h('div', { className:'balance-label' }, 'V币余额 (个)')), h('div', { className:'balance-item' }, h('div', { className:'balance-val' }, '0'), h('div', { className:'balance-label' }, '收入余额 (元)')))))
+  );
+}
 
 function AITab() {
-  const [mode, setMode] = useState('text');
-  const [prompt, setPrompt] = useState('');
-  const [imagePreview, setImagePreview] = useState(null);
-  const [size, setSize] = useState('1:1');
-  const [rotation, setRotation] = useState('');
-  const [background, setBackground] = useState('');
+  const [imgBase64, setImgBase64] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState('');
   const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [error, setError] = useState('');
-  const pollRef = useRef(null);
-  const fileRef = useRef(null);
 
-  const stopPoll = () => { if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; } };
-  useEffect(() => () => stopPoll(), []);
-
-  function handleFile(file) {
-    if (!file) return;
-    compressImage(file, b64 => setImagePreview(b64));
-  }
-
-  async function handleGenerate() {
-    setError('');
-    if (mode === 'text') {
-      if (!prompt.trim()) { setError('请输入生成描述'); return; }
-    } else {
-      if (!imagePreview) { setError('请上传参考图片'); return; }
-      if (!rotation)    { setError('请选择旋转方式'); return; }
-      if (!background)  { setError('请选择背景效果'); return; }
-    }
-    setResult(null); setLoading(true); setProgress(15);
-
+  const handleGen = async () => {
+    if (!imgBase64) return alert('请先上传图片');
+    setLoading(true); setStatus('任务提交中...');
     try {
-      if (mode === 'text') {
-        const sizeMap = { '1:1':'2048x2048', '16:9':'2048x1152', '9:16':'1152x2048' };
-        const resp = await fetch('/api/generate', {
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ prompt, size: sizeMap[size] || '2048x2048' })
-        });
-        const data = await resp.json();
-        if (!resp.ok) { setError(data.error || '生成失败'); setLoading(false); return; }
-        setProgress(100); setResult({ type:'image', url:data.url }); setLoading(false);
-      } else {
-        const resp = await fetch('/api/generate-video', {
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ imageBase64: imagePreview, rotation, background })
-        });
-        const data = await resp.json();
-        if (!resp.ok) { setError(data.error || '任务创建失败'); setLoading(false); return; }
-        setProgress(30);
-        pollRef.current = setInterval(async () => {
-          try {
-            const pr = await fetch(`/api/task-status?taskId=${encodeURIComponent(data.taskId)}`);
-            const pd = await pr.json();
-            if (pd.status === 'succeeded') {
-              stopPoll(); setProgress(100);
-              setResult({ type:'video', url:pd.videoUrl }); setLoading(false);
-            } else if (pd.status === 'failed') {
-              stopPoll(); setError(pd.error || '视频生成失败'); setLoading(false);
-            } else {
-              setProgress(p => Math.min(p + 5, 90));
-            }
-          } catch(e) { stopPoll(); setError('轮询失败: ' + e.message); setLoading(false); }
-        }, 4000);
-      }
-    } catch(e) { setError('网络错误: ' + e.message); setLoading(false); }
-  }
-
-  return h('div', { style:{ maxWidth:720, margin:'0 auto' } },
-    h('h2', { style:{ fontSize:22, fontWeight:800, color:'#1a1a2e', marginBottom:6 } }, '开始生成您的3D专属素材'),
-    h('p', { style:{ fontSize:14, color:'#6b7280', marginBottom:20 } }, 'LOGO  奶茶  咖啡  酒水  饮料  动物  植物  节日  人物  科幻  汽车'),
-
-    /* mode selector */
-    h('div', { style:{ display:'flex', gap:10, marginBottom:24 } },
-      h('button', { className:`mode-tab${mode==='text'?' active':''}`, onClick:()=>setMode('text') }, '关键词生图'),
-      h('button', { className:`mode-tab${mode==='image'?' active':''}`, onClick:()=>setMode('image') }, '图转视频')
-    ),
-
-    h('div', { style:{ background:'#fff', borderRadius:10, padding:28, boxShadow:'0 1px 4px rgba(0,0,0,0.08)' } },
-      /* image upload (image mode) */
-      mode==='image' && h('div', { style:{ marginBottom:20 } },
-        h('div', {
-          style:{ border:'2px dashed #d0d5dd', borderRadius:8, padding:24, textAlign:'center', cursor:'pointer', background:'#fafafa', transition:'border-color 0.2s' },
-          onClick:()=>fileRef.current?.click(),
-          onDragOver:e=>{e.preventDefault();},
-          onDrop:e=>{e.preventDefault(); handleFile(e.dataTransfer.files[0]);}
-        },
-          imagePreview
-            ? h('img', { src:imagePreview, style:{ maxHeight:180, borderRadius:8, display:'block', margin:'0 auto' } })
-            : h('div', { style:{ color:'#9ca3af' } },
-                h('div', { style:{ fontSize:36 } }, '📁'),
-                h('div', { style:{ marginTop:8, fontSize:13 } }, '点击或拖拽上传参考图片')
-              )
-        ),
-        h('input', { type:'file', accept:'image/*', ref:fileRef, style:{display:'none'}, onChange:e=>handleFile(e.target.files[0]) })
-      ),
-
-      /* prompt */
-      h('textarea', {
-        value:prompt, onChange:e=>setPrompt(e.target.value),
-        placeholder: mode==='text'
-          ? '输入内容描述，例如：赛博朋克龙、珍珠奶茶、品牌 LOGO...'
-          : '可选：补充动效描述，例如：缓慢旋转、光晕呼吸感...',
-        rows:3, style:{ resize:'none', marginBottom:16 }
-      }),
-
-      /* size (text mode) */
-      mode==='text' && h('div', { style:{ marginBottom:16 } },
-        h('div', { style:{ fontSize:12, fontWeight:700, color:'#6b7280', marginBottom:8 } }, '尺寸'),
-        h('div', { style:{ display:'flex', gap:8 } },
-          [['1:1','方形'],['16:9','横版'],['9:16','竖版']].map(([k,l]) =>
-            h('button', { key:k, className:`opt-pill${size===k?' selected':''}`, onClick:()=>setSize(k) }, l)
-          )
-        )
-      ),
-
-      /* rotation + background (image mode) */
-      mode==='image' && h('div', null,
-        h('div', { style:{ marginBottom:16 } },
-          h('div', { style:{ fontSize:12, fontWeight:700, color:'#6b7280', marginBottom:8 } }, '旋转方式 *'),
-          h('div', { style:{ display:'flex', gap:8, flexWrap:'wrap' } },
-            ROTATION_OPTS.map(o =>
-              h('button', { key:o.value, className:`opt-pill${rotation===o.value?' selected':''}`, onClick:()=>setRotation(o.value) }, o.label)
-            )
-          )
-        ),
-        h('div', { style:{ marginBottom:16 } },
-          h('div', { style:{ fontSize:12, fontWeight:700, color:'#6b7280', marginBottom:8 } }, '背景效果 *'),
-          h('div', { style:{ display:'flex', gap:8, flexWrap:'wrap' } },
-            BG_OPTS.map(o =>
-              h('button', { key:o.value, className:`opt-pill${background===o.value?' selected':''}`, onClick:()=>setBackground(o.value) }, o.label)
-            )
-          )
-        )
-      ),
-
-      error && h('div', { style:{ color:'#dc2626', fontSize:13, marginBottom:12, padding:'8px 12px', background:'#fef2f2', border:'1px solid #fecaca', borderRadius:6 } }, error),
-
-      loading && h('div', { style:{ marginBottom:16 } },
-        h('div', { className:'progress-bar' },
-          h('div', { className:'progress-fill', style:{ width:progress+'%' } })
-        ),
-        h('div', { style:{ textAlign:'center', fontSize:12, color:'#9ca3af', marginTop:6 } },
-          mode==='text' ? '正在生成图片...' : `视频生成中 ${progress}%，Veo 通常需要 1-2 分钟`
-        )
-      ),
-
-      h('div', { style:{ textAlign:'center' } },
-        h('button', { className:'btn-primary', disabled:loading, onClick:handleGenerate, style:{ padding:'11px 48px', fontSize:15 } },
-          loading ? '生成中...' : (mode==='text' ? '立即生成' : '生成视频')
-        )
-      )
-    ),
-
-    /* result */
-    result && h('div', { style:{ marginTop:24, textAlign:'center' } },
-      result.type==='image'
-        ? h('img', { src:result.url, style:{ maxWidth:'100%', borderRadius:10, boxShadow:'0 2px 16px rgba(0,0,0,0.12)' } })
-        : h('video', { src:result.url, controls:true, autoPlay:true, loop:true, style:{ maxWidth:'100%', borderRadius:10 } }),
-      h('div', { style:{ display:'flex', gap:10, justifyContent:'center', marginTop:14 } },
-        h('a', { href:result.url, download:'hologram', className:'btn-primary', style:{ textDecoration:'none' } }, '⬇ 下载'),
-        h('button', { className:'btn-secondary', onClick:()=>setResult(null) }, '重新生成')
-      )
-    )
-  );
-}
-
-/* ── CustomOrder Tab ─────────────────────────────── */
-function CustomOrderTab() {
-  const [form, setForm] = useState({ companyName:'', industry:'', name:'', position:'', phone:'', email:'', description:'' });
-  const [loading, setLoading] = useState(false);
-  const [done, setDone] = useState(false);
-  const [error, setError] = useState('');
-  const up = k => e => setForm(f => ({ ...f, [k]: e.target.value }));
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    if (!form.name.trim() || !form.phone.trim() || !form.description.trim()) {
-      setError('姓名、联系电话、需求描述为必填项'); return;
-    }
-    setError(''); setLoading(true);
-    try {
-      const resp = await fetch('/api/custom-order', {
-        method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(form)
-      });
+      const resp = await fetch(`${API_BASE}/generate-video`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ imageBase64: imgBase64, rotation: 'horizontal', background: 'pure_black' }) });
       const data = await resp.json();
-      if (!resp.ok) { setError(data.error || '提交失败'); setLoading(false); return; }
-      setDone(true);
-    } catch(e) { setError('网络错误: ' + e.message); }
-    setLoading(false);
-  }
+      const poll = setInterval(async () => {
+        const r = await fetch(`${API_BASE}/task-status?taskId=${encodeURIComponent(data.taskId)}`);
+        const d = await r.json();
+        if (d.status==='succeeded') { clearInterval(poll); setResult({url:d.videoUrl}); setLoading(false); }
+        else if (d.status==='failed') { clearInterval(poll); alert(d.error); setLoading(false); }
+      }, 5000);
+    } catch(e) { alert(e.message); setLoading(false); }
+  };
 
-  if (done) return h('div', { style:{ textAlign:'center', padding:'80px 20px' } },
-    h('div', { style:{ fontSize:56, marginBottom:16 } }, '✅'),
-    h('h3', { style:{ fontSize:22, fontWeight:800, marginBottom:8 } }, '申请已提交！'),
-    h('p', { style:{ color:'#6b7280' } }, '我们将在 24 小时内与您联系'),
-    h('button', { className:'btn-primary', style:{ marginTop:24 }, onClick:()=>{ setDone(false); setForm({ companyName:'', industry:'', name:'', position:'', phone:'', email:'', description:'' }); } }, '再次提交')
-  );
-
-  return h('div', { style:{ maxWidth:700, margin:'0 auto' } },
-    h('div', { style:{ background:'#1a73e8', padding:'16px 24px', borderRadius:'10px 10px 0 0', marginBottom:0 } },
-      h('h2', { style:{ color:'#fff', fontWeight:800, fontSize:18 } }, '内容定制服务')
-    ),
-    h('form', { onSubmit:handleSubmit, style:{ background:'#fff', borderRadius:'0 0 10px 10px', padding:28, boxShadow:'0 1px 4px rgba(0,0,0,0.08)' } },
-      /* 公司信息 */
-      h('div', { style:{ marginBottom:24 } },
-        h('div', { className:'section-hd' }, '◈  公司信息'),
-        h('div', { style:{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 } },
-          h('div', null,
-            h('div', { style:{ fontSize:12, color:'#dc2626', fontWeight:600, marginBottom:4 } }, '* 公司名称'),
-            h('input', { placeholder:'请输入公司名称', value:form.companyName, onChange:up('companyName') })
-          ),
-          h('div', null,
-            h('div', { style:{ fontSize:12, color:'#dc2626', fontWeight:600, marginBottom:4 } }, '* 所属行业'),
-            h('input', { placeholder:'请输入所属行业', value:form.industry, onChange:up('industry') })
-          )
-        )
-      ),
-      /* 申请人信息 */
-      h('div', { style:{ marginBottom:24 } },
-        h('div', { className:'section-hd' }, '◈  申请人信息'),
-        h('div', { style:{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14, marginBottom:14 } },
-          h('div', null,
-            h('div', { style:{ fontSize:12, color:'#dc2626', fontWeight:600, marginBottom:4 } }, '* 姓名'),
-            h('input', { placeholder:'请输入姓名', value:form.name, onChange:up('name') })
-          ),
-          h('div', null,
-            h('div', { style:{ fontSize:12, color:'#374151', fontWeight:600, marginBottom:4 } }, '职位'),
-            h('input', { placeholder:'请输入职位', value:form.position, onChange:up('position') })
-          )
-        ),
-        h('div', { style:{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 } },
-          h('div', null,
-            h('div', { style:{ fontSize:12, color:'#dc2626', fontWeight:600, marginBottom:4 } }, '* 联系电话'),
-            h('input', { placeholder:'请输入联系电话', value:form.phone, onChange:up('phone') })
-          ),
-          h('div', null,
-            h('div', { style:{ fontSize:12, color:'#374151', fontWeight:600, marginBottom:4 } }, '邮箱地址'),
-            h('input', { placeholder:'请输入邮箱', type:'email', value:form.email, onChange:up('email') })
-          )
-        )
-      ),
-      /* 定制需求 */
-      h('div', { style:{ marginBottom:24 } },
-        h('div', { className:'section-hd' }, '◈  定制需求'),
-        h('div', null,
-          h('div', { style:{ fontSize:12, color:'#dc2626', fontWeight:600, marginBottom:4 } }, '* 详细需求描述'),
-          h('textarea', { placeholder:'详细需求描述', rows:5, style:{ resize:'none' }, value:form.description, onChange:up('description') })
-        )
-      ),
-      error && h('div', { style:{ color:'#dc2626', fontSize:13, marginBottom:14, padding:'8px 12px', background:'#fef2f2', border:'1px solid #fecaca', borderRadius:6 } }, error),
-      h('div', { style:{ textAlign:'center' } },
-        h('button', { type:'submit', className:'btn-primary', disabled:loading, style:{ padding:'11px 64px', fontSize:15 } },
-          loading ? '提交中...' : '提交申请'
-        )
-      )
+  return h('div', { className:'hero-container animate-fade' },
+    h('div', { className:'gen-box', style:{ background:'#fff', textAlign:'center' } },
+      loading ? h('div', { style:{ padding:40 } }, h('div', { style:{ fontSize:40 } }, '⚙️'), h('div', null, status)) : 
+      result ? h('video', { src:result.url, controls:true, autoPlay:true, loop:true, style:{ width:'100%', borderRadius:12 } }) :
+      h('div', null, h('input', { type:'file', onChange:e=>{ const r = new FileReader(); r.onload=ev=>setImgBase64(ev.target.result); r.readAsDataURL(e.target.files[0]); } }), imgBase64 && h('img', { src:imgBase64, style:{ width:'100%', marginTop:20, borderRadius:12 } }), h('button', { className:'btn-black', style:{ marginTop:20, background:'#000', color:'#fff', padding:'12px 24px', borderRadius:50, border:'none', cursor:'pointer' }, onClick:handleGen }, '开始 AI 视频生成'))
     )
   );
 }
 
-/* ── Profile Tab ─────────────────────────────────── */
-function ProfileTab() {
-  const [view, setView] = useState('downloaded_free');
-  const MENU = [
-    { id:'downloaded_free',  label:'已下载免费素材' },
-    { id:'downloaded_paid',  label:'已下载付费素材' },
-    { id:'generated_ai',     label:'已生成AI素材' },
-    { id:'balance',          label:'账户余额' },
-    { id:'recharge',         label:'充值' },
-  ];
-  return h('div', { style:{ display:'flex', gap:20, alignItems:'flex-start' } },
-    /* sidebar */
-    h('div', { style:{ width:180, flexShrink:0, background:'#fff', borderRadius:10, padding:12, boxShadow:'0 1px 4px rgba(0,0,0,0.08)' } },
-      MENU.map(m =>
-        h('div', { key:m.id, className:`sidebar-item${view===m.id?' active':''}`, onClick:()=>setView(m.id) }, m.label)
-      )
-    ),
-    /* main */
-    h('div', { style:{ flex:1 } },
-      /* user card */
-      h('div', { style:{ background:'#fff', borderRadius:10, padding:24, boxShadow:'0 1px 4px rgba(0,0,0,0.08)', marginBottom:16 } },
-        h('div', { style:{ display:'flex', alignItems:'center', gap:16, marginBottom:20 } },
-          h('div', { style:{ width:64, height:64, borderRadius:'50%', background:'#1a73e8', display:'flex', alignItems:'center', justifyContent:'center', fontSize:26, color:'#fff', fontWeight:900 } }, '卫'),
-          h('div', null,
-            h('div', { style:{ fontWeight:800, fontSize:16 } }, 'v26041915224737'),
-            h('div', { style:{ fontSize:12, color:'#9ca3af', marginTop:3 } }, '今天是入卫黎第 5,171 天，光阴如梭，和我们一起，让创意更有价值'),
-            h('div', { style:{ display:'flex', gap:8, marginTop:10 } },
-              h('button', { className:'btn-primary', style:{ padding:'6px 18px', fontSize:12 } }, '充值'),
-              h('button', { className:'btn-secondary', style:{ padding:'6px 18px', fontSize:12 } }, '充值与发票')
-            )
-          )
-        ),
-        /* stats */
-        h('div', { style:{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12 } },
-          [['流量余额（元）','0'],['VIP余额（个）','1'],['收入余额（元）','0']].map(([l,v]) =>
-            h('div', { key:l, className:'stat-card' },
-              h('div', { style:{ fontSize:24, fontWeight:800, color:'#1a1a2e' } }, v),
-              h('div', { style:{ fontSize:12, color:'#9ca3af', marginTop:4 } }, l)
-            )
-          )
-        )
-      ),
-      /* content area */
-      h('div', { style:{ background:'#fff', borderRadius:10, padding:24, boxShadow:'0 1px 4px rgba(0,0,0,0.08)' } },
-        h('div', { style:{ fontWeight:700, fontSize:15, marginBottom:16, color:'#1a1a2e' } }, MENU.find(m=>m.id===view)?.label),
-        h('div', { style:{ textAlign:'center', padding:'40px 0', color:'#9ca3af', fontSize:14 } }, '暂无记录')
-      )
-    )
-  );
-}
-
-/* ── Home Tab ─────────────────────────────────────── */
-function HomeTab({ setTab }) {
-  return h('div', null,
-    /* hero banner */
-    h('div', { style:{ background:'linear-gradient(135deg,#1a73e8 0%,#0d47a1 100%)', borderRadius:14, padding:'48px 40px', marginBottom:28, color:'#fff', textAlign:'center' } },
-      h('h1', { style:{ fontSize:'clamp(24px,4vw,42px)', fontWeight:900, marginBottom:12, lineHeight:1.2 } }, '全息3D内容平台'),
-      h('p', { style:{ fontSize:16, opacity:0.88, maxWidth:520, margin:'0 auto 28px' } }, '海量全息素材免费下载 · AI智能生成专属内容 · 品牌定制24小时响应'),
-      h('div', { style:{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' } },
-        h('button', { style:{ background:'#fff', color:'#1a73e8', border:'none', borderRadius:6, padding:'12px 32px', fontWeight:800, fontSize:15, cursor:'pointer' }, onClick:()=>setTab('ai') }, '开始AI生成'),
-        h('button', { style:{ background:'transparent', color:'#fff', border:'2px solid rgba(255,255,255,0.6)', borderRadius:6, padding:'12px 32px', fontWeight:700, fontSize:15, cursor:'pointer' }, onClick:()=>setTab('free') }, '浏览免费素材')
-      )
-    ),
-    /* 3 feature cards */
-    h('div', { style:{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))', gap:16 } },
-      [
-        { icon:'🎬', title:'免费素材专区', desc:'LOGO、奶茶、酒水、动物、科幻等多品类全息视频，免费下载即用', tab:'free' },
-        { icon:'✨', title:'AI智能生成', desc:'输入关键词或上传图片，秒级生成专属3D全息内容', tab:'ai' },
-        { icon:'🎯', title:'内容定制服务', desc:'品牌专属全息内容，专业团队24小时响应，量身定制', tab:'order' },
-      ].map(f =>
-        h('div', { key:f.title, className:'card', style:{ padding:24, cursor:'pointer' }, onClick:()=>setTab(f.tab) },
-          h('div', { style:{ fontSize:36, marginBottom:12 } }, f.icon),
-          h('h3', { style:{ fontWeight:800, fontSize:16, color:'#1a1a2e', marginBottom:8 } }, f.title),
-          h('p', { style:{ fontSize:13, color:'#6b7280', lineHeight:1.65 } }, f.desc)
-        )
-      )
-    )
-  );
-}
-
-/* ── App ──────────────────────────────────────────── */
 function App() {
   const [tab, setTab] = useState('home');
-  const TABS = [
-    { id:'home',    label:'HOME' },
-    { id:'free',    label:'免费素材' },
-    { id:'paid',    label:'付费素材' },
-    { id:'ai',      label:'AI生成' },
-    { id:'order',   label:'内容定制' },
-    { id:'profile', label:'个人中心' },
-  ];
+  const [cat, setCat] = useState('全部');
+  const [selected, setSelected] = useState(null);
+  const [checkout, setCheckout] = useState(null);
+
+  const TABS = [{ id:'home', label:'HOME' }, { id:'free', label:'免费素材' }, { id:'paid', label:'付费素材' }, { id:'ai', label:'AI生成' }, { id:'order', label:'内容定制' }, { id:'profile', label:'个人中心' }];
+
+  if (checkout) return h('div', null, h('div', { className:'nav-container' }, h('div', { className:'nav-inner' }, h('div', { onClick:()=>setCheckout(null), style:{ cursor:'pointer', fontWeight:900 } }, '← 返回详情'))), h(CheckoutView, { item:checkout }));
 
   const renderContent = () => {
     switch(tab) {
-      case 'home':    return h(HomeTab, { setTab });
-      case 'free':    return h(AssetGrid, { items:FREE_ITEMS, paid:false });
-      case 'paid':    return h(AssetGrid, { items:PAID_ITEMS, paid:true });
-      case 'ai':      return h(AITab);
-      case 'order':   return h(CustomOrderTab);
-      case 'profile': return h(ProfileTab);
-      default: return null;
+      case 'home': return h(HomeView);
+      case 'ai': return h(AITab);
+      case 'free':
+      case 'paid': return h('div', { className:'animate-fade' }, h('div', { className:'cat-bar' }, CATS.map(c => h('div', { key:c, className:`cat-item ${cat===c?'active':''}`, onClick:()=>setCat(c) }, c))), h('div', { className:'asset-grid' }, ASSETS.filter(it => tab==='free'?it.price===0:it.price>0).map(it => h('div', { key:it.id, className:'asset-card', onClick:()=>setSelected(it) }, h('div', { className:'asset-thumb' }, h('div', { style:{ position:'absolute', top:10, left:10, background:'#3b82f6', color:'#fff', fontSize:10, padding:'2px 6px', borderRadius:4 } }, '4K'), h('img', { src:it.thumb, style:{ width:'100%', height:'100%', objectFit:'cover' } })), h('div', { className:'asset-info' }, h('div', { className:'asset-title' }, it.title), h('div', { className:'asset-price' }, it.price===0?'免费':`¥ ${it.price}`))))));
+      case 'order': return h(OrderView);
+      case 'profile': return h(ProfileView);
+      default: return h(HomeView);
     }
   };
 
-  return h('div', { style:{ minHeight:'100vh', background:'#f0f2f5' } },
-    h('div', { style:{ maxWidth:1120, margin:'0 auto', padding:'0 20px' } },
-      /* header */
-      h('header', { style:{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'16px 0', marginBottom:24, borderBottom:'1px solid #e5e7eb', background:'#f0f2f5' } },
-        h('div', { style:{ fontWeight:900, fontSize:20, color:'#1a1a2e', letterSpacing:'0.02em' } },
-          h('span', { style:{ color:'#1a73e8' } }, '卫黎'),
-          h('span', { style:{ fontWeight:400, fontSize:13, color:'#9ca3af', marginLeft:8 } }, '全息内容')
-        ),
-        h('nav', { style:{ display:'flex', gap:8, overflowX:'auto' }, className:'no-scrollbar' },
-          TABS.map(t =>
-            h('button', { key:t.id, className:`nav-tab${tab===t.id?' active':''}`, onClick:()=>setTab(t.id) }, t.label)
-          )
-        )
-      ),
-      /* content */
-      h('main', { style:{ paddingBottom:60 } }, renderContent())
-    )
+  return h('div', null,
+    h('div', { className:'nav-container' }, h('div', { className:'nav-inner' }, h('div', { style:{ fontWeight:900, fontSize:22 } }, '卫黎全息'), h('nav', { className:'nav-tabs' }, TABS.map(t => h('button', { key:t.id, className:`nav-tab ${tab===t.id?'active':''}`, onClick:()=>setTab(t.id) }, t.label))))),
+    h('div', null, renderContent()),
+    selected && h(AssetDetail, { item:selected, onClose:()=>setSelected(null), onBuy:(it)=>{ setSelected(null); setCheckout(it); } })
   );
 }
 

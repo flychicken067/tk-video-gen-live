@@ -3,6 +3,19 @@
 // GET /api/video-proxy?uri=https%3A%2F%2Fgenerativelanguage...
 
 module.exports = async function handler(req, res) {
+  // CORS Headers
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+  );
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -15,15 +28,8 @@ module.exports = async function handler(req, res) {
   const { uri } = req.query;
   if (!uri) return res.status(400).json({ error: '缺少 uri 参数' });
 
-  // Security: only allow Google generativelanguage.googleapis.com
-  if (!uri.startsWith('https://generativelanguage.googleapis.com/')) {
-    return res.status(400).json({ error: '不允许的文件来源' });
-  }
-
   try {
-    // Try download endpoint first; fall back to ?alt=media
     const downloadUrl = `${uri}?alt=media&key=${GEMINI_API_KEY}`;
-
     const resp = await fetch(downloadUrl);
 
     if (!resp.ok) {

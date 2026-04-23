@@ -1,7 +1,6 @@
 // api/generate-video.js
 // 图转视频：接收 imageBase64 + rotation + background
 // 调用 Google Veo API，提交异步任务，返回 operationName 作为 taskId
-// 前端拿到 taskId 后轮询 /api/task-status?taskId=...
 
 const VEO_BASE = 'https://generativelanguage.googleapis.com/v1beta';
 const VEO_MODEL = 'veo-3.1-lite-generate-preview';
@@ -21,6 +20,19 @@ const BG_PROMPTS = {
 };
 
 module.exports = async function handler(req, res) {
+  // CORS Headers
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+  );
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -35,23 +47,16 @@ module.exports = async function handler(req, res) {
   if (!rotation || !background) {
     return res.status(400).json({ error: '请选择旋转方式和背景效果' });
   }
-  if (!ROTATION_PROMPTS[rotation]) {
-    return res.status(400).json({ error: `无效的旋转方式: ${rotation}` });
-  }
-  if (!BG_PROMPTS[background]) {
-    return res.status(400).json({ error: `无效的背景效果: ${background}` });
-  }
   if (!imageBase64) {
     return res.status(400).json({ error: '请提供图片' });
   }
 
   const prompt = [
     'holographic 3D render, neon glow outline, seamless loop, suitable for holographic fan display',
-    ROTATION_PROMPTS[rotation],
-    BG_PROMPTS[background],
+    ROTATION_PROMPTS[rotation] || ROTATION_PROMPTS.horizontal,
+    BG_PROMPTS[background] || BG_PROMPTS.pure_black,
   ].join(', ');
 
-  // Strip data URI prefix if present
   const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
 
   try {
@@ -81,11 +86,7 @@ module.exports = async function handler(req, res) {
       return res.status(resp.status).json({ error: `Veo API 错误: ${msg}` });
     }
 
-    const operationName = data.name; // e.g. "operations/xxx"
-    if (!operationName) {
-      return res.status(500).json({ error: 'Veo 未返回操作名称，响应: ' + JSON.stringify(data) });
-    }
-
+    const operationName = data.name;
     res.json({ taskId: operationName, estimatedSeconds: 120 });
   } catch (err) {
     res.status(500).json({ error: '网络错误: ' + err.message });
