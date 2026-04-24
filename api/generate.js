@@ -11,21 +11,30 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  const { prompt, size = '1:1', provider = 'seedream' } = req.body;
+  if (!prompt?.trim()) {
+    return res.status(400).json({ error: '请输入生成描述' });
+  }
+
+  const fullPrompt = prompt.trim() + HOLO_SUFFIX;
+
+  // ── Pollinations.ai（完全免费，无需 Key）──────────────────────────
+  if (provider === 'pollinations') {
+    const sizeMap = { '1:1': [1024, 1024], '16:9': [1024, 576], '9:16': [576, 1024] };
+    const [w, ht] = sizeMap[size] || [1024, 1024];
+    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?width=${w}&height=${ht}&nologo=true&model=flux&seed=${Date.now()}`;
+    return res.json({ url, revised_prompt: fullPrompt });
+  }
+
+  // ── 即梦 Seedream（高质量，需 ARK_API_KEY）───────────────────────
   const ARK_API_KEY = process.env.ARK_API_KEY;
   if (!ARK_API_KEY) {
     return res.status(500).json({ error: 'ARK_API_KEY 未设置' });
   }
 
-  const { prompt, size = '1:1' } = req.body;
-  if (!prompt?.trim()) {
-    return res.status(400).json({ error: '请输入生成描述' });
-  }
-
   // Model requires ≥ 3,686,400 px; 2048×2048 = 4,194,304 px ✓
-  const sizeMap = { '1:1': '2048x2048', '2k': '2048x2048', '3k': '3072x3072' };
+  const sizeMap = { '1:1': '2048x2048', '16:9': '2048x1152', '9:16': '1152x2048', '2k': '2048x2048', '3k': '3072x3072' };
   const resolvedSize = sizeMap[size] || size;
-
-  const fullPrompt = prompt.trim() + HOLO_SUFFIX;
 
   try {
     const response = await fetch(JIMENG_API_URL, {
