@@ -78,6 +78,44 @@
 
     .animate-fade { animation: fadeIn 0.4s ease; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* ── price option fix ── */
+    .price-option { display: flex !important; flex-direction: row !important; align-items: center !important; gap: 12px; padding: 16px; border: 1.5px solid #e2e8f0; border-radius: 12px; margin-bottom: 12px; cursor: pointer; }
+    .price-option.active { border-color: var(--primary); background: #eff6ff; }
+    .price-option input[type=radio] { flex-shrink: 0; width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer; }
+    .price-option .po-label { flex: 1; min-width: 0; }
+    .price-option .po-price { flex-shrink: 0; font-weight: 900; font-size: 18px; color: var(--primary); white-space: nowrap; }
+
+    /* ── mobile ── */
+    @media (max-width: 640px) {
+      .nav-inner { padding: 10px 16px; }
+      .nav-tab { padding: 6px 10px; font-size: 12px; }
+      .hero-container { padding: 32px 16px; }
+      .hero-title { font-size: 18px; }
+      .gen-box { padding: 14px; border-radius: 16px; }
+      .gen-toolbar { flex-wrap: wrap; gap: 8px; }
+      .tool-btn { font-size: 11px; padding: 5px 8px; }
+      .cat-bar { gap: 14px; font-size: 14px; }
+      .showcase-grid { grid-template-columns: 1fr 1fr !important; gap: 8px; }
+      .showcase-item { aspect-ratio: 1 !important; grid-row: auto !important; grid-column: auto !important; }
+      .asset-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px; padding: 0 16px; }
+      .modal-content { flex-direction: column !important; max-height: 95vh; overflow-y: auto; }
+      .modal-content > div:first-child { flex: none !important; width: 100% !important; min-height: 220px; padding: 20px !important; }
+      .modal-content > div:last-child { width: 100% !important; padding: 20px !important; }
+      .checkout-container { grid-template-columns: 1fr !important; padding: 0 16px; margin-top: 20px; }
+      .checkout-side { position: static !important; }
+      .form-section { padding: 20px 16px; }
+      .form-grid { grid-template-columns: 1fr !important; gap: 16px; }
+      .profile-container { padding: 20px 16px; flex-direction: column; }
+      .side-menu { width: 100% !important; display: flex; overflow-x: auto; gap: 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
+      .side-link { font-size: 13px !important; padding: 8px 12px !important; white-space: nowrap; }
+      .user-card { padding: 20px !important; flex-direction: column; }
+      .balance-grid { gap: 24px !important; }
+      .hero-title + div { font-size: 28px !important; }
+    }
+    @media (max-width: 400px) {
+      .nav-tab { padding: 5px 7px; font-size: 11px; }
+    }
   </style>
 </head>
 <body>
@@ -95,29 +133,52 @@ const ASSETS = [
   { id:5, title:'极光运动鞋', price:24.98, thumb:'./assets/sneaker.png' },
 ];
 
-function HomeView() {
+function HomeView({ setTab, setCat }) {
+  const [homePrompt, setHomePrompt] = React.useState('');
+  const handleSend = () => {
+    if (homePrompt.trim()) { window.__homePrompt = homePrompt.trim(); }
+    setTab('ai');
+  };
+  const handleCat = (c) => { setCat(c); setTab(c === '全部' ? 'free' : 'free'); };
   return h('div', { className:'animate-fade' },
     h('div', { className:'hero-container' },
       h('div', { className:'hero-title' }, '开启你的 ', h('span', { className:'agent-tag' }, 'Agent 模式 ⌵'), ' 即刻造梦！'),
       h('div', { className:'gen-box' },
-        h('div', { style:{ display:'flex', gap:20, marginBottom:20 } },
-          h('div', { style:{ width:60, height:80, background:'#f1f5f9', borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center', color:'#94a3b8', fontSize:20 } }, '+'),
-          h('textarea', { style:{ flex:1, border:'none', outline:'none', resize:'none', fontSize:14 }, placeholder:'输入想法、脚本或上传参考...' })
+        h('div', { style:{ display:'flex', gap:16, marginBottom:20 } },
+          h('div', { style:{ width:48, height:72, background:'#f1f5f9', borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center', color:'#94a3b8', fontSize:20, flexShrink:0 } }, '+'),
+          h('textarea', { value:homePrompt, onChange:e=>setHomePrompt(e.target.value), onKeyDown:e=>{ if(e.key==='Enter'&&(e.metaKey||e.ctrlKey)) handleSend(); }, style:{ flex:1, border:'none', outline:'none', resize:'none', fontSize:14, minHeight:72, background:'transparent' }, placeholder:'输入想法、脚本或上传参考...' })
         ),
         h('div', { className:'gen-toolbar' },
-          h('div', { style:{ display:'flex', gap:10 } }, ['✨ Agent模式', '画 自动', '🔑 使用技能', '🔍 灵感搜索'].map(t => h('button', { key:t, className:'tool-btn' }, t))),
-          h('button', { className:'send-btn' }, '↑')
+          h('div', { style:{ display:'flex', gap:8, flexWrap:'wrap' } },
+            [['✨ Agent模式','ai'],['🎨 关键词生图','ai'],['🔑 使用技能','ai'],['🔍 灵感搜索','free']].map(([t,dest]) =>
+              h('button', { key:t, className:'tool-btn', onClick:()=>setTab(dest) }, t)
+            )
+          ),
+          h('button', { className:'send-btn', onClick:handleSend, title:'Cmd+Enter' }, '↑')
         )
       ),
-      h('div', { style:{ fontSize:40, fontWeight:900, marginTop:40 } }, '开始生成您的3D专属素材'),
-      h('div', { className:'cat-bar', style:{ margin:'20px 0' } }, CATS.slice(1).map(c => h('div', { key:c, className:'cat-item' }, c))),
+      h('div', { style:{ fontSize:'clamp(22px,4vw,40px)', fontWeight:900, marginTop:40 } }, '开始生成您的3D专属素材'),
+      h('div', { className:'cat-bar', style:{ margin:'20px 0' } },
+        CATS.slice(1).map(c =>
+          h('div', { key:c, className:'cat-item', onClick:()=>handleCat(c),
+            style:{ cursor:'pointer', color:'#1e293b', transition:'0.15s', userSelect:'none' },
+            onMouseEnter:e=>e.target.style.color='#3b82f6',
+            onMouseLeave:e=>e.target.style.color='#1e293b'
+          }, c)
+        )
+      ),
       h('div', { className:'showcase-grid' },
-        h('div', { className:'showcase-item', style:{ gridRow:'span 2' } }, h('img', { src:'https://images.unsplash.com/photo-1596443686812-2f45229eebc3?auto=format&fit=crop&q=80&w=400' })),
-        h('div', { className:'showcase-item' }, h('img', { src:'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&q=80&w=400' })),
-        h('div', { className:'showcase-item' }, h('img', { src:'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400' })),
-        h('div', { className:'showcase-item' }, h('img', { src:'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=400' })),
-        h('div', { className:'showcase-item', style:{ gridRow:'span 2' } }, h('img', { src:'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&q=80&w=400' })),
-        h('div', { className:'showcase-item', style:{ gridColumn:'span 3' } }, h('img', { src:'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=800' }))
+        h('div', { className:'showcase-item', style:{ gridRow:'span 2' }, onClick:()=>setTab('free') }, h('img', { src:'./assets/dragon.png', style:{ width:'100%', height:'100%', objectFit:'cover' } })),
+        h('div', { className:'showcase-item', onClick:()=>setTab('free') }, h('img', { src:'./assets/tiger.png', style:{ width:'100%', height:'100%', objectFit:'cover' } })),
+        h('div', { className:'showcase-item', onClick:()=>setTab('free') }, h('img', { src:'./assets/watch.png', style:{ width:'100%', height:'100%', objectFit:'cover' } })),
+        h('div', { className:'showcase-item', onClick:()=>setTab('free') }, h('img', { src:'./assets/perfume.png', style:{ width:'100%', height:'100%', objectFit:'cover' } })),
+        h('div', { className:'showcase-item', style:{ gridRow:'span 2' }, onClick:()=>setTab('free') }, h('img', { src:'./assets/sneaker.png', style:{ width:'100%', height:'100%', objectFit:'cover' } })),
+        h('div', { className:'showcase-item', style:{ gridColumn:'span 3' }, onClick:()=>setTab('ai') },
+          h('div', { style:{ width:'100%', height:'100%', background:'linear-gradient(135deg,#1e293b,#3b82f6)', display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:8 } },
+            h('div', { style:{ fontSize:32 } }, '✨'),
+            h('div', { style:{ color:'#fff', fontWeight:800, fontSize:16 } }, 'AI 生成专属全息素材')
+          )
+        )
       )
     )
   );
@@ -132,15 +193,31 @@ function AssetDetail({ item, onClose, onBuy }) {
       h('div', { style:{ width:450, padding:40 } },
         h('h2', { style:{ fontWeight:900, fontSize:24, marginBottom:10 } }, item.title),
         h('div', { style:{ fontSize:12, color:'#94a3b8', marginBottom:30 } }, '格式: mp4  大小: 9.36M  分辨率: 1024x1024'),
-        isFree ? h('div', { style:{ padding:'40px 0' } }, h('div', { style:{ fontSize:20, fontWeight:900, color:'#10b981', marginBottom:20 } }, '免费专享素材'), h('button', { style:{ width:'100%', padding:16, borderRadius:12, background:'#10b981', color:'#fff', border:'none', fontWeight:800 } }, '立即下载')) : 
-        h('div', null,
-          h('div', { className:`price-option ${tier==='personal'?'active':''}`, onClick:()=>setTier('personal') }, h('input', { type:'radio', checked:tier==='personal', readOnly:true }), h('div', { style:{ flex:1 } }, h('div', { style:{ fontWeight:800 } }, '个人授权'), h('div', { style:{ fontSize:11, color:'#64748b' } }, '仅在云平台使用')), h('div', { style:{ fontWeight:900 } }, `¥ ${item.price}`)),
-          h('div', { className:`price-option ${tier==='biz'?'active':''}`, onClick:()=>setTier('biz') }, h('input', { type:'radio', checked:tier==='biz', readOnly:true }), h('div', { style:{ flex:1 } }, h('div', { style:{ fontWeight:800 } }, '企业授权'), h('div', { style:{ fontSize:11, color:'#64748b' } }, '支持下载使用')), h('div', { style:{ fontWeight:900 } }, '¥ 24.98')),
-          h('div', { style:{ display:'flex', gap:12, marginTop:40 } },
-            h('button', { style:{ flex:1, padding:16, borderRadius:12, border:'1.5px solid #e2e8f0', background:'#fff', fontWeight:800 } }, '加入购物车'),
-            h('button', { style:{ flex:1, padding:16, borderRadius:12, background:'#3b82f6', color:'#fff', border:'none', fontWeight:800 }, onClick:()=>onBuy(item) }, '立即购买')
-          )
-        )
+        isFree
+          ? h('div', { style:{ padding:'32px 0' } },
+              h('div', { style:{ fontSize:18, fontWeight:900, color:'#10b981', marginBottom:16 } }, '✅ 免费专享素材'),
+              h('div', { style:{ fontSize:12, color:'#64748b', marginBottom:24 } }, '无需付费，登录即可下载'),
+              h('button', { style:{ width:'100%', padding:16, borderRadius:12, background:'#10b981', color:'#fff', border:'none', fontWeight:800, fontSize:16, cursor:'pointer' } }, '立即下载')
+            )
+          : h('div', null,
+              [
+                { id:'personal', label:'个人授权', desc:'仅在云平台使用',  price:`¥ ${item.price}` },
+                { id:'biz',      label:'企业授权', desc:'支持下载，商用授权', price:'¥ 24.98' },
+              ].map(opt =>
+                h('div', { key:opt.id, className:`price-option ${tier===opt.id?'active':''}`, onClick:()=>setTier(opt.id) },
+                  h('input', { type:'radio', checked:tier===opt.id, readOnly:true }),
+                  h('div', { className:'po-label' },
+                    h('div', { style:{ fontWeight:800, fontSize:14 } }, opt.label),
+                    h('div', { style:{ fontSize:11, color:'#64748b', marginTop:2 } }, opt.desc)
+                  ),
+                  h('div', { className:'po-price' }, opt.price)
+                )
+              ),
+              h('div', { style:{ display:'flex', gap:12, marginTop:28 } },
+                h('button', { style:{ flex:1, padding:14, borderRadius:12, border:'1.5px solid #e2e8f0', background:'#fff', fontWeight:800, cursor:'pointer', fontSize:14 } }, '加入购物车'),
+                h('button', { style:{ flex:1, padding:14, borderRadius:12, background:'#3b82f6', color:'#fff', border:'none', fontWeight:800, cursor:'pointer', fontSize:14 }, onClick:()=>onBuy(item) }, '立即购买')
+              )
+            )
       )
     )
   );
@@ -175,10 +252,10 @@ function ProfileView() {
   );
 }
 
-function AITab() {
+function AITab({ initPrompt = '' }) {
   const [mode, setMode] = useState('text');       // 'text' | 'video'
   const [provider, setProvider] = useState('pollinations'); // 'pollinations' | 'seedream'
-  const [prompt, setPrompt] = useState('');
+  const [prompt, setPrompt] = useState(initPrompt);
   const [size, setSize] = useState('1:1');
   const [rotation, setRotation] = useState('horizontal');
   const [background, setBackground] = useState('pure_black');
@@ -340,8 +417,8 @@ function App() {
 
   const renderContent = () => {
     switch(tab) {
-      case 'home': return h(HomeView);
-      case 'ai': return h(AITab);
+      case 'home': return h(HomeView, { setTab, setCat });
+      case 'ai': return h(AITab, { initPrompt: window.__homePrompt || '' });
       case 'free':
       case 'paid': return h('div', { className:'animate-fade' }, h('div', { className:'cat-bar' }, CATS.map(c => h('div', { key:c, className:`cat-item ${cat===c?'active':''}`, onClick:()=>setCat(c) }, c))), h('div', { className:'asset-grid' }, ASSETS.filter(it => tab==='free'?it.price===0:it.price>0).map(it => h('div', { key:it.id, className:'asset-card', onClick:()=>setSelected(it) }, h('div', { className:'asset-thumb' }, h('div', { style:{ position:'absolute', top:10, left:10, background:'#3b82f6', color:'#fff', fontSize:10, padding:'2px 6px', borderRadius:4 } }, '4K'), h('img', { src:it.thumb, style:{ width:'100%', height:'100%', objectFit:'cover' } })), h('div', { className:'asset-info' }, h('div', { className:'asset-title' }, it.title), h('div', { className:'asset-price' }, it.price===0?'免费':`¥ ${it.price}`))))));
       case 'order': return h(OrderView);
